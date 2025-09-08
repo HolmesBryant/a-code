@@ -1,0 +1,19 @@
+{
+  "name": "a-code",
+  "version": "1.0.0",
+  "description": "A web component that displays code snippets with optional syntax-highlighting",
+  "type": "module",
+  "main": "a-code.js",
+  "scripts": {
+    "dev": "browser-sync start --server --files \"src/*.*\"",
+    "test": "tests/tests.js",
+    "build": "rollup -c"
+  },
+  "author": "Holmes Bryant <https://github.com/HolmesBryant>",
+  "license": "GPL",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "browser-sync": "^3.0.3",
+    "rollup": "^4.30.1"
+  }
+}

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>A-Code Web Component</title>
+	<script type="module" src="src/a-code.js"></script>
+	<script type="module" src="extra/a-form.js"></script>
+	<script type="module" src="extra/a-tabset.min.js"></script>
+	<link rel="stylesheet" href="extra/styles.css">
+	<link rel="stylesheet" href="extra/a-tabset.css">
+
+	<style>
+		/*
+			These styles are here instead of in the styles.css file to make it easier to see the manual styling of a-code elements.
+		 */
+		a-code {
+			--indent: 2;
+	    	background-color: var(--bg1);
+	    	border-radius: .5rem;
+			font-weight: normal;
+			padding: 1rem;
+			min-width: 300px;
+	    }
+
+	    a-tabset a-code {
+	    	width: 100%;
+	    }
+
+	    a-code[inline] {
+	    	min-width: 50px;
+			overflow: auto;
+	    	padding: .25rem;
+	    }
+	</style>
+	<script>
+		if (!window.CSS.highlights) alert ('This browser does not yet support the CSS Custom Highlight API')
+	</script>
+</head>
+<body>
+	<h1>A-Code Web Component</h1>
+	<p>A custom element for displaying code snippets with consistent formatting and optional highlighting: <a href="https://github.com/HolmesBryant/a-code">Github Repo</a></p>
+
+	<details>
+	<summary>README</summary>
+		<div id="instructions"> </div>
+	</details>
+
+	<h2>Demo</h2>
+	<a-form wait="false" success="false" class="sticky" id="stick">
+		<section class="row center">
+			<div>
+				<label for="demo-indent">indent</label>
+				<input name="indent" value="4" id="demo-indent" list="demo-indents" oninput="change(this, 'indent')">
+				<datalist id="demo-indents">
+					<option>1</option>
+					<option>2</option>
+					<option>3</option>
+					<option>4</option>
+					<option>1rem</option>
+					<option>2rem</option>
+					<option>3rem</option>
+					<option>4rem</option>
+					<option>1px</option>
+					<option>2px</option>
+					<option>3px</option>
+					<option>4px</option>
+				</datalist>
+			</div>
+			<div>
+				<label for="demo-highlight">highlight</label>
+				<select id="demo-highlight" onchange="change(this, 'highlight')">
+					<option selected value='reset'>Defaults</option>
+					<option>false</option>
+					<option>javascript</option>
+					<option>html</option>
+				</select>
+			</div>
+			<div>
+				<label for="demo-palette">palette</label>
+				<select id="demo-palette" onchange="change(this, 'palette')">
+					<option value="">Default Palette</option>
+					<option
+						value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
+						Custom Palette
+					</option>
+				</select>
+			</div>
+			<fieldset class="row">
+				<legend>line-numbers</legend>
+				<div>
+					<label for="demo-line-numbers-true">true</label>
+					<input
+					checked
+					type="radio"
+					value="true"
+					name="demo-line-numbers"
+					id="demo-line-numbers-true"
+					onchange="change(this, 'line-numbers')">
+				</div>
+				<div>
+					<label for="demo-line-numbers-false">false</label>
+					<input
+					type="radio"
+					value="false"
+					name="demo-line-numbers"
+					id="demo-line-numbers-false"
+					onchange="change(this, 'line-numbers')">
+				</div>
+			</fieldset>
+			<div>
+				<label for="demo-inline">inline</label>
+				<input type="checkbox" name="inline" id="demo-inline" onchange="change(this, 'inline')">
+			</div>
+		</section>
+	</a-form>
+
+	<section>
+		<a-tabset>
+			<strong slot="title">Javascript</strong>
+			<article slot="content">
+				<a-code
+				class="demo"
+				line-numbers
+				highlight="javascript">
+					#! hashbang
+
+					/**
+					 * @function foo
+					 * @description Does foo things
+					 *
+					 * @param {HTMLElement}	element An HTML element
+					 */
+					function foo (element) {
+						let bar, output = '';
+						const baz = "boom";
+						const result = document.querySelector('#result');
+						const bing = ["one", "123.456", -12.5, +100, "3px", 2^3, 2.5e3, 1.2E-3, 1**2, 0x123, 0xFAF];
+
+						bar = 2 * 3;
+
+						// This is a comment
+						/*Another comment*/
+						for (const child of element.children) {
+							for (const attr of child.attributes) {
+								output += `
+									${attr.name} -> ${attr.value}\n
+									<p id="foo">Some text</p>
+								`;
+							}
+						}
+
+						someElement.addEventListener (
+							'click',
+							event => { console.log(event); }
+						);
+
+						const func = (arg) => arg.toLowerCase();
+
+						return output;
+					}
+
+					class MyClass {
+						@foo
+						sayHello(name) {
+							return `Hello, ${name}!`;
+						}
+					}
+				</wijt-code>
+			</article>
+
+			<strong slot="title">HTML</strong>
+			<article slot="content">
+				<a-code
+				class="demo"
+				line-numbers
+				highlight="html">
+					<textarea>
+						<style>
+							/**** A Comment ****/
+
+							/* Another
+								Comment */
+
+							body {
+								--var1: rgb(250, 250, 250);
+								--var2: #f2f2f2;
+								--var3: white;
+								--argument: hsl(32, 93%, 66%);
+
+							  background: var(--var1);
+								font-family: sans-serif;
+								font-size: 16px;
+							  height: 100%;
+							  letter-spacing: .1rem;
+								padding: 1rem;
+							}
+
+							@media (prefers-color-scheme: dark) {
+								body {
+							    --var1: rgb(20, 20, 20);
+								}
+
+								* { padding: 0; }
+							}
+
+							@media (max-width: 300px) {
+								* { padding: 0; }
+							}
+
+								section,
+							  summary
+							  { background-color: var(--bg2) }
+
+							  summary:hover,
+							  details[open] > summary
+							  {
+							  	background-image: linear-gradient(
+							  		to bottom,
+							  		#008000,
+							  		rgb(0, 128, 0) 0 10%,
+							  		rgba(0, 128, 0, 0.5) 10% 20%,
+							  		hsl(120, 100%, 25.098%) 30%,
+							  		hwb(120 0% 49.804%),
+							  		color(a98-rgb 0.28137 0.49802 0.11675),
+							  		lab(46.278 -47.552 48.586),
+							  		#333 50%
+							  	),
+							  	linear-gradient(336deg, rgba(0,0,255,.8), rgba(0,0,255,0) 70.71%);
+								}
+
+								section[data-foo="bar"] {
+									margin: 0 auto 1rem auto;
+									padding: 1rem;
+								}
+
+								div::before{
+									content: "*";
+								}
+
+								div::after {
+									content: "";
+								}
+						</style>
+						<!-- Comment -->
+						<!--A
+							multi-line
+							comment-->
+
+						<img src="false" onerror="alert('foo')">
+
+						<p class="some-class">Some Text</p>
+						<div>
+							<label for="test-number" data-foo="" id=foo>Number</label>
+
+							<input
+								name="input"
+								value="2"
+								id="test-number"
+								list="test-numbers"
+								oninput="doSomething(event)">
+
+							<datalist id="test-numbers">
+								<option>1</option>
+								<option>"123.456"</option>
+								<option>-12.5</option>
+								<option>+100</option>
+								<option>3px</option>
+								<option>2.5e3</option>
+								<option>1.2e-3</option>
+								<option>0x123</option>
+								<option>9.876E9</option>
+								<option>0xFAF</option>
+							</datalist>
+						</div>
+
+						<a-code highlight="html">
+							<article>
+								<h1>A Title</h1>
+								<p class="foo">Some text</p>
+							</article>
+						</a-code>
+					</textarea>
+				</a-code>
+			</article>
+		</a-tabset>
+	</section>
+
+	<section class="inline-example" id="unstick">
+		<header><h2>Inline Code</h2></header>
+		<div class="row">
+			<a-code inline>
+				<a-code inline>...</a-code >
+			</a-code>
+
+			<p>Some text <a-code inline> function foo() {}</a-code> some more text.</p>
+		</div>
+	</section>
+
+	<section class="row" id="examples">
+
+		<div>
+			<header><h3>Indent (integer)</h3></header>
+			<a-code indent="2">
+				<a-code indent="2" >
+					<article>
+						<h1>A Title</h1>
+						<p>Some text</p>
+					</article>
+				</a-code >
+			</a-code>
+		</div>
+
+		<div>
+			<header><h3>Indent (css length)</h3></header>
+			<a-code html indent=".5rem">
+				<a-code indent=".5rem" >
+					<article>
+						<h1>A Title</h1>
+						<p>Some text</p>
+					</article>
+				</a-code >
+			</a-code>
+		</div>
+
+		<div>
+			<header><h3>Add line numbers</h3></header>
+			<a-code line-numbers>
+				<a-code line-numbers>
+					<article>
+						<h1>A Title</h1>
+						<p>Some text</p>
+					</article>
+				</a-code>
+			</a-code>
+		</div>
+
+		<div>
+			<header><h3>Highlight using Default Defs</h3></header>
+			<a-code id="editable" highlight>
+				<textarea>
+					<a-code highlight>
+						<article>
+							<h1>A Title</h1>
+							<p class="foo">Some text</p>
+						</article>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div>
+			<header><h3>Highlight using Keyword</h3></header>
+			<a-code id="editable" highlight="html" edit>
+				<textarea>
+					<a-code highlight="html">
+						<article>
+							<h1>A Title</h1>
+							<p class="foo">Some text</p>
+						</article>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div>
+			<header><h3>Highlight Code using Url</h3></header>
+			<a-code highlight="./syntax.html.js">
+				<a-code highlight="./syntax.html.js">
+					<article>
+						<h1>A Title</h1>
+						<p class="foo">Some text</p>
+					</article>
+				</a-code>
+			</a-code>
+		</div>
+
+		<div>
+			<header style="text-align:center">
+				<h3 style="margin-bottom:0">Prevent code execution</h3>
+				<span>Wrap code in textarea (which will be removed before display)</span>
+			</header>
+			<a-code>
+				<textarea>
+					<a-code>
+						&lt;textarea>
+							<img src="false" onerror="alert('fubar!')">
+						&lt;/textarea>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div>
+			<header style="text-align:center">
+				<h3 style="margin-bottom:0">
+					Nested Textareas
+				</h3>
+				<span>(escape slashes in nested closing tags with a backslash)</span>
+			</header>
+			<a-code>
+				<textarea>
+					<a-code>
+						&lt;textarea>
+							<img src="false" onerror="alert('fubar!')">
+							<textarea>
+								...
+							<\\/textarea>
+						&lt;/textarea>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+	</section>
+
+	<script src="extra/scripts.js"></script>
+	<!-- comment -->
+</body>
+</html>
