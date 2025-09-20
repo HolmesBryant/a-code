@@ -8,15 +8,30 @@
  *  @license GPL-3.0
  */
 export default {
-	argument: /(?<=\()[^)]+/g,
-	function: /[\w-]+\s*\(|\)/g,
-	property: /(?<!}[\r\n\s]+)\b([\w\d-]+:(?!:))/g,
-	number: /(?<!\w)[#+.-]?\d+[%\b\.\w]*/g,
-	operator: /=/g,
-	tag: /<\/?[\w-]+|(?<=[\w"])>/g,
-	string: /["'`][^"'`]*["'`]/g,
-	variable: /--[\w\d]+/g,
-	comment: /(<!--|\/\*)([\s\S]*?)(-->|\*\/)/g,
-	keyword: /@[\w]+\b/g
+	// css function argument
+    argument: /(?<=\()[^)]+/g,
+
+    // css function
+    function: /[\w-]+\s*\(|\)/g,
+
+    operator: /[>+~*,*\/=]|(?<!\w[-])/g,
+
+    // normal css property
+    property: /(?<!}[\r\n\s]+)\b([\w\d-]+:(?!:))/g,
+
+    number: /(?<!\w)[#+-.]?\d+[%\b\.\w]*/g,
+
+    // HTML tag
+    tag: /<\/?[\w-]+|(?<=[\w"])>/g,
+
+    string: /["'`][^"'`]*["'`]/g,
+
+    // css custom property
+    variable: /--[\w\d]+-?[\w\d]*/g,
+
+    comment: /(<!--|\/\*)([\s\S]*?)(-->|\*\/)/g,
+
+    // css media query
+    keyword: /@[\w]+\b/g
 }
 

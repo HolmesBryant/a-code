@@ -21,7 +21,7 @@ export class ACode extends HTMLElement {
    */
   #abortController = new AbortController();
 
-  #editorAbortController = new AbortController();
+  #editorAbortController;
 
   /**
    * @private
@@ -45,7 +45,7 @@ export class ACode extends HTMLElement {
 
   /**
    * @private
-   * @type Highlighter
+   * @type {Highlighter}
    * @description An instance of the Highlighter class
    */
   #highlighter;
@@ -64,7 +64,7 @@ export class ACode extends HTMLElement {
    * @description The number of spaces to represent a tab character. Can use most css length values.
    * @comment Has public getter (indent)
    */
-  #indent = "1";
+  #indent;
 
   #lineNumbers = false;
 
@@ -88,13 +88,61 @@ export class ACode extends HTMLElement {
    * @description A list of attributes to observe for changes.
    */
   static observedAttributes = [
-    "edit",
     "highlight",
     "inline",
     "indent",
     "line-numbers",
     "palette",
   ];
+
+  static template = `
+    <style>
+      :host {
+        --indent: 1;
+        --line-number-color: gray;
+        --wrap: pre;
+        display: block;
+        max-width: 100%;
+        vertical-align: middle;
+      }
+
+      section {
+        display: grid;
+        gap: .5rem;
+        grid-template-columns: max-content 1fr;
+      }
+
+      .hidden
+      { display: none; }
+
+      .inline {
+        display: inline;
+        margin: 0;
+        white-space: nowrap;
+      }
+
+      #content {
+        font-family: "Courier New", monospace;
+        margin: 0;
+        tab-size: var(--indent);
+        white-space: var(--wrap);
+        width: 100%;
+        max-width: 90vw;
+        overflow: auto;
+      }
+
+      #line-numbers {
+        color: var(--line-number-color);
+        font-family: monospace;
+        white-space: pre-line;
+      }
+    </style>
+
+    <section>
+      <div id="line-numbers"></div>
+      <div id="content"><slot></slot></div>
+    </section>
+  `;
 
   /**
    * @constructor
@@ -103,78 +151,7 @@ export class ACode extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          --indent: ${this.indent};
-          --line-number-color: gray;
-          --wrap: pre;
-          display: block;
-          overflow-x: auto;
-          vertical-align: middle;
-        }
-
-        div {
-          position: relative;
-          font-family: "Courier New", monospace;
-        }
-
-        pre {
-          font-family: monospace;
-          margin: 0;
-          tab-size: var(--indent);
-          white-space: var(--wrap);
-        }
-
-        section {
-          display: grid;
-          gap: .5rem;
-          grid-template-columns: max-content 1fr;
-        }
-
-        textarea {
-          all: inherit;
-          bottom: 0;
-          caret-color: white;
-          color: transparent;
-          display: block;
-          height: 100%;
-          overflow-y: hidden;
-          position: absolute;
-          tab-size: var(--indent);
-          top: 0;
-          width: 100%;
-        }
-
-        textarea:focus {
-          outline: 2px dashed silver;
-        }
-
-        .hidden {
-          display: none;
-        }
-
-        .inline {
-          display: inline;
-          margin: 0;
-          white-space: nowrap;
-        }
-
-        #line-numbers {
-          color: var(--line-number-color);
-          font-family: monospace;
-          white-space: pre-line;
-        }
-      </style>
-
-      <section>
-        <div id="line-numbers"></div>
-        <div>
-          <pre><slot></slot></pre>
-          <textarea class="hidden" spellcheck="false"></textarea>
-        </div>
-      </section>
-    `;
+    this.shadowRoot.innerHTML = ACode.template;
   }
 
   /**
@@ -183,18 +160,14 @@ export class ACode extends HTMLElement {
    */
   connectedCallback() {
     const slot = this.shadowRoot.querySelector("slot");
-    this.contentNode = this.shadowRoot.querySelector("pre");
+    this.contentNode = this.shadowRoot.querySelector("#content");
     this.textContent = this.resetSpaces(this.getContent());
     if (this.highlight) this.highlightCode();
     if (this.lineNumbers) this.addLineNumbers();
 
-    slot.addEventListener(
-      "slotchange",
-      () => {
-        this.updateIfNeeded();
-      },
-      { signal: this.#abortController.signal }
-    );
+    slot.addEventListener("slotchange", () => {
+      this.updateIfNeeded();
+    }, { signal: this.#abortController.signal });
   }
 
   /**
@@ -211,132 +184,8 @@ export class ACode extends HTMLElement {
   disconnectedCallback() {
     this.#abortController.abort();
     this.#editorAbortController.abort();
-  }
-
-  /**
-   * Updates the text content of the element if needed.
-   * @param {number}      delay   - The time delay within which to ignore changes.
-   * @param {HTMLElement} elem    - The element whose content should be normalized.
-   * @remarks Sets a flag to indicate an update is needed on the next call to this method.
-   *          This helps prevent redundant updates during rapid changes.
-   */
-  updateIfNeeded(delay = 500, elem = this) {
-    const currentTime = Date.now();
-    if (this.#needsUpdate) {
-      if (currentTime - this.#lastMutationTime > delay) {
-        this.#lastMutationTime = currentTime;
-        this.textContent = this.resetSpaces(this.getContent(elem));
-        if (this.highlighter) this.destroyHighlights();
-        if (this.lineNumbers) this.addLineNumbers();
-        setTimeout(() => {
-          if (this.highlight) this.highlightCode();
-        }, 50);
-      }
-    } else {
-      this.#needsUpdate = true;
-    }
-  }
-
-  /**
-   * Highlights code using a specified syntax and applies it to an element.
-   *
-   * @param   {string}      syntax  - The syntax to use for highlighting.
-   * @param   {HTMLElement} element - The element to highlight.
-   * @throws  {Error}   - Throws Error if highlighter.highlight() fails.
-   *
-   * @test self.highlight = 'html'; return self.highlightCode ( 'html', self ) // true
-   */
-  async highlightCode(syntax = this.highlight, element = this) {
-    try {
-      return await this.highlighter.highlight(syntax, element.childNodes[0]);
-    } catch (error) {
-      throw error;
-      return false;
-    }
-  }
-
-  /**
-   * Destroys all current highlights.
-   * @returns {string} The suffix used to identify the highlights used by this instance in the CSS HighlightRegistry
-   *
-   * @test self.highlighter = 'html'; self.destroyHighlights() // self.highlighter
-   */
-  destroyHighlights() {
-    try {
-      return this.highlighter.removeAll();
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  /**
-   * Normalizes indentation in code blocks.
-   *
-   * @param {String} string - A string of code
-   * @returns {string} The formatted code with normalized indentation.
-   * @remarks Ensures consistent spacing within the code block, regardless of how the code was originally indented.
-   *  - Reset the flag indicating an update is needed.
-   *  - Replace leading spaces with tabs, trim extra whitespace, and split the content into lines.
-   *  - Determine the number of leading whitespaces in the last line.
-   *  - Create a regular expression to match the leading whitespace.
-   *  - Remove the leading whitespace from each line and return the formatted code as a string.
-   * @test self.resetSpaces ( '\t\t\tfoo\t\t\t' ) // 'foo'
-   */
-  resetSpaces(string) {
-    this.needsUpdate = false;
-    string = string
-      .replace(/^ +/gm, (spaces) => "\t".repeat(spaces.length))
-      .trim();
-
-    const lines = string.split("\n");
-    const spaces = lines.at(-1).match(/^\s*/)[0].length;
-    const regex = new RegExp(`^\\s{${spaces}}`, "g");
-    return lines.map((line) => line.replace(regex, "")).join("\n");
-  }
-
-  /**
-   * Retrieves the content from the given element.
-   * If no element is provided, it retrieves the content from `this` element.
-   *
-   * @param   {HTMLElement} [elem]  - The element from which to retrieve the content.
-   * @returns {string} - The content of the element.
-   *
-   * @test self.getContent ( self ) // ""
-   */
-  getContent(elem = this) {
-    let ta, content;
-    if (elem.localName === "textarea") {
-      // If elem is a textarea. This occurs when edit is enabled.
-      content = elem.value;
-    } else if (
-      elem.firstElementChild &&
-      elem.firstElementChild.localName === "textarea"
-    ) {
-      // If user wrapped their code in a textarea (to prevent code execution) grab its contents and remove the textarea
-
-      ta = elem.querySelector("textarea");
-      // Additional textareas (specifically, textarea closing tags) inside the main textarea wrapper cause the rendering engine to truncate the content, so users must either encode the slash in the extra closing tags, or escape the slash with a '\'. Here we can safely remove these backslashes.
-      content = ta.value.replace("<\\", "<");
-      ta.remove();
-    } else {
-      content = this.convertHTML(elem.innerHTML);
-    }
-
-    return content;
-  }
-
-  /**
-   * Converts any string that would be rendered in the browser into plain text.
-   *
-   * @param   {string} html   - Any string
-   * @returns {string}  - The html converted into plain text that will not be rendered.
-   *
-   * @test self.convertHTML ( '<script>alert("foo")</script>' ) // '\x3Cscript>alert("foo")\x3C/script>'
-   */
-  convertHTML(html) {
-    const elem = document.createElement("textarea");
-    elem.innerHTML = html;
-    return elem.value;
+    this.#abortController = null;
+    this.#editorAbortController = null;
   }
 
   addLineNumbers() {
@@ -354,46 +203,97 @@ export class ACode extends HTMLElement {
   }
 
   /**
-   * Enables editing.
+   * Converts any string that would be rendered in the browser into plain text.
    *
-   * @test
-      self.enableEdit();
-      return self.shadowRoot.querySelector('textarea').classList.contains('hidden');
-      // false
+   * @param   {string} html   - Any string
+   * @returns {string}  - The html converted into plain text that will not be rendered.
+   *
+   * @test mod.convertHTML ( '<script>alert("foo")</script>' ) // '\x3Cscript>alert("foo")\x3C/script>'
    */
-  enableEdit() {
-    const ta = this.shadowRoot.querySelector("textarea");
-    ta.classList.remove("hidden");
-    ta.value = this.textContent;
-    this.interceptKeyPress(ta);
-    ta.addEventListener(
-      "input",
-      (event) => {
-        this.updateIfNeeded(500, event.target);
-      },
-      { signal: this.#editorAbortController.signal }
-    );
+  convertHTML(html) {
+    const elem = document.createElement("textarea");
+    elem.innerHTML = html;
+    return elem.value;
   }
 
   /**
    * Disables editing.
    *
-   * @test
-      self.disableEdit();
-      return self.shadowRoot.querySelector( 'textarea' ).classList.contains( 'hidden' );
-      // true
+   * @test mod.disableEdit(); return mod.contentNode.contentEditable // false
    */
   disableEdit() {
-    const ta = this.shadowRoot.querySelector("textarea");
-    ta.classList.add("hidden");
-    this.#editorAbortController.abort();
+    this.contentNode.toggleAttribute('contentEditable', false);
+  }
+
+  /**
+   * Destroys all current highlights.
+   * @returns {string} The suffix used to identify the highlights used by this instance in the CSS HighlightRegistry
+   *
+   * @test mod.highlighter = 'html'; mod.destroyHighlights() // mod.highlighter
+   */
+  destroyHighlights() {
+    try {
+      return this.highlighter.removeAll();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  /**
+   * Enables editing
+   *
+   * @test mod.enableEdit(); return mod.contentNode.contentEditable \\ true
+   *
+   */
+  enableEdit() {
+    // this.#editorAbortController = new AbortController();
+    this.contentNode.toggleAttribute('contentEditable', true);
+    // this.interceptKeyPress(this.contentNode);
+    /*this.contentNode.addEventListener("input", (event) => {
+      this.updateIfNeeded(500, event.target);
+    }, { signal: this.#editorAbortController.signal } );*/
+  }
+
+  /**
+   * Retrieves the content from the given element.
+   * If no element is provided, it retrieves the content from `this` element.
+   *
+   * @param   {HTMLElement} [elem]  - The element from which to retrieve the content.
+   * @returns {string} - The content of the element.
+   *
+   * @test mod.getContent( self ) // ""
+   */
+  getContent(elem = this) {
+    if (this.children[0] && this.children[0].localName === 'textarea') {
+      return this.textContent;
+    } else {
+      return this.convertHTML(this.innerHTML);
+    }
+  }
+
+  /**
+   * Highlights code using a specified syntax and applies it to an element.
+   *
+   * @param   {string}      syntax  - The syntax to use for highlighting.
+   * @param   {HTMLElement} element - The element to highlight.
+   * @throws  {Error}   - Throws Error if highlighter.highlight() fails.
+   *
+   * @test mod.highlight = 'html'; return mod.highlightCode ( 'html', self ) // true
+   */
+  async highlightCode(syntax = this.highlight, element = this) {
+    try {
+      return await this.highlighter.highlight(syntax, element.childNodes[0]);
+    } catch (error) {
+      throw error;
+      return false;
+    }
   }
 
   /**
    * Adds event listener to intercept key presses when editing is enabled
    * @param  {HTMLElement} element  - The element on which to add the event listener.
    */
-  interceptKeyPress(element) {
+  /*interceptKeyPress(element) {
     element.addEventListener(
       "keydown",
       (event) => {
@@ -414,13 +314,62 @@ export class ACode extends HTMLElement {
       },
       { signal: this.#editorAbortController.signal }
     );
+  }*/
+
+  /**
+   * Normalizes indentation in code blocks.
+   *
+   * @param {String} string - A string of code
+   * @returns {string} The formatted code with normalized indentation.
+   * @remarks Ensures consistent spacing within the code block, regardless of how the code was originally indented.
+   *  - Reset the flag indicating an update is needed.
+   *  - Replace leading spaces with tabs, trim extra whitespace, and split the content into lines.
+   *  - Determine the number of leading whitespaces in the last line.
+   *  - Create a regular expression to match the leading whitespace.
+   *  - Remove the leading whitespace from each line and return the formatted code as a string.
+   * @test mod.resetSpaces ( '\t\t\tfoo\t\t\t' ) // 'foo'
+   */
+  resetSpaces(string) {
+    this.needsUpdate = false;
+    string = string
+      .replace(/^ +/gm, (spaces) => "\t".repeat(spaces.length))
+      .trim();
+
+    const lines = string.split("\n");
+    const spaces = lines.at(-1).match(/^\s*/)[0].length;
+    const regex = new RegExp(`^\\s{${spaces}}`, "g");
+    return lines.map((line) => line.replace(regex, "")).join("\n");
+  }
+
+  /**
+   * Updates the text content of the element if needed.
+   * @param {number}      delay   - The time delay within which to ignore changes.
+   * @param {HTMLElement} elem    - The element whose content should be normalized.
+   * @remarks Sets a flag to indicate an update is needed on the next call to this method.
+   *          This helps prevent redundant updates during rapid changes.
+   */
+  updateIfNeeded(elem = this, delay = 500) {
+    const currentTime = Date.now();
+    if (this.#needsUpdate) {
+      if (currentTime - this.#lastMutationTime > delay) {
+        this.#lastMutationTime = currentTime;
+        this.textContent = this.resetSpaces(this.getContent(elem));
+        if (this.highlighter) this.destroyHighlights();
+        if (this.lineNumbers) this.addLineNumbers();
+        setTimeout(() => {
+          if (this.highlight) this.highlightCode();
+        }, 50);
+      }
+    } else {
+      this.#needsUpdate = true;
+    }
   }
 
   /**
    * Gets the value of the inline property
    * @returns {boolean}
    *
-   * @test typeof self.inline === 'boolean'  // true
+   * @test typeof mod.inline === 'boolean'  // true
    */
   get inline() {
     return this.#inline;
@@ -430,9 +379,9 @@ export class ACode extends HTMLElement {
    * Sets whether the code should be displayed inline or as a block.
    * @param {boolean | string} value  The new value for the inline property.
    *
-   * @test self.inline = false; return self.inline // false
-   * @test self.setAttribute( 'inline', 'true' );
-           return self.inline;
+   * @test mod.inline = false; return mod.inline // false
+   * @test mod.setAttribute( 'inline', 'true' );
+           return mod.inline;
        // true
    */
   set inline(value) {
@@ -461,7 +410,7 @@ export class ACode extends HTMLElement {
    * Gets the value of the indent property
    * @returns {string | number}
    *
-   * @test ( typeof self.indent === 'string' || typeof self.indent === 'number' ) // true
+   * @test ( typeof mod.indent === 'string' || typeof mod.indent === 'number' ) // true
    */
   get indent() {
     return this.#indent;
@@ -471,10 +420,11 @@ export class ACode extends HTMLElement {
    * Sets the tab size for the code block, affecting its indentation.
    * @param {string | number} value - The width of a tab character. Can take numbers or most css length measurements.
    *
-   * @test self.indent = '2rem'; return self.indent; // '2rem'
-   * @test self.setAttribute( 'indent', '5' ); return self.indent; // '5'
+   * @test mod.indent = '2rem'; return mod.indent; // '2rem'
+   * @test mod.setAttribute( 'indent', '5' ); return mod.indent; // '5'
    */
   set indent(value) {
+    value =
     this.style.setProperty("--indent", value);
     this.#indent = value;
   }
@@ -491,10 +441,10 @@ export class ACode extends HTMLElement {
    * Sets the value of the highlight property and updates the content if needed.
    * @param  {string} value Either a keyword, a url or a file path pointing to a syntax file.
    *
-   * @test self.highlight = false; return self.highlight // false
-   * @test self.highlight = 'html'; return self.highlight // 'html';
-   * @test self.setAttribute( 'highlight', 'false' ); return self.highlight // false
-   * @test self.setAttribute( 'highlight', 'html' ); return self.highlight // 'html'
+   * @test mod.highlight = false; return mod.highlight // false
+   * @test mod.highlight = 'html'; return mod.highlight // 'html';
+   * @test mod.setAttribute( 'highlight', 'false' ); return mod.highlight // false
+   * @test mod.setAttribute( 'highlight', 'html' ); return mod.highlight // 'html'
    */
   set highlight(value) {
     switch (value) {
@@ -515,7 +465,7 @@ export class ACode extends HTMLElement {
    * Gets the edit property
    * @returns {Boolian}
    *
-   * @test typeof self.edit // 'boolean'
+   * @test typeof mod.edit // 'boolean'
    */
   get edit() {
     return this.#edit;
@@ -525,8 +475,8 @@ export class ACode extends HTMLElement {
    * Sets the value of the edit property and enables editing of content
    * @param  {string | boolean}   value   Whether to enable editing.
    *
-   * @test self.setAttribute( 'edit', 'false' );
-           return self.edit;
+   * @test mod.setAttribute( 'edit', 'false' );
+           return mod.edit;
            // false
    */
   set edit(value) {
@@ -561,12 +511,12 @@ export class ACode extends HTMLElement {
    * Sets the value of the lineNumbers property and either adds line numbers or removes them.
    * @param  {string | boolean} value Accepts strings ("true", "false", "") or boolean
    *
-   * @test self.lineNumbers = true; return self.lineNumbers; // true
-   * @test self.lineNumbers = false; return self.lineNumbers; // false
-   * @test self.lineNumbers = null; return self.lineNumbers; // true
-   * @test self.setAttribute ( 'line-numbers', 'true' ); return self.lineNumbers // true
-   * @test self.setAttribute ( 'line-numbers', '' ); return self.lineNumbers; // true
-   * @test self.setAttribute ( 'line-numbers', 'false' ); return self.lineNumbers; // false
+   * @test mod.lineNumbers = true; return mod.lineNumbers; // true
+   * @test mod.lineNumbers = false; return mod.lineNumbers; // false
+   * @test mod.lineNumbers = null; return mod.lineNumbers; // true
+   * @test mod.setAttribute ( 'line-numbers', 'true' ); return mod.lineNumbers // true
+   * @test mod.setAttribute ( 'line-numbers', '' ); return mod.lineNumbers; // true
+   * @test mod.setAttribute ( 'line-numbers', 'false' ); return mod.lineNumbers; // false
    */
   set lineNumbers(value) {
     const container = this.shadowRoot.querySelector("#line-numbers");
@@ -587,7 +537,7 @@ export class ACode extends HTMLElement {
    * Gets the custom color palette, if there is one.
    * @returns {Map | false} The custom highlighter palette
    *
-   * @test self.palette === false || self.palette instanceof Map // true
+   * @test mod.palette === false || mod.palette instanceof Map // true
    */
   get palette() {
     if (this.highlighter) return this.highlighter.palette;
@@ -598,11 +548,11 @@ export class ACode extends HTMLElement {
    * Set custom color palette for code highlighting.
    * @param  {String|Array|Map}   value   The new palette definitions. Array must be a two dimensional array where each entry is a key => value pair. String must be JSON string representing a two dimensional Array.
    *
-   * @test self.highlight = 'html';
-         self.setAttribute( 'palette', '[["property", "color"]]' );
-           return self.highlighter.palette instanceof Map // true
+   * @test mod.highlight = 'html';
+      mod.setAttribute( 'palette', '[["property", "color"]]' );
+      return mod.highlighter.palette instanceof Map // true
    *
-   * @test const val = self.palette = false; return val; // false
+   * @test const val = mod.palette = false; return val; // false
    */
   set palette(value) {
     if (this.highlighter) {
@@ -635,16 +585,32 @@ export class Highlighter {
     ["variable", "darkkhaki"],
     ["tag", "indianred"],
   ]);
+
   defaultSyntaxDef = {
+    // css function argument
     argument: /(?<=\()[^)]+/g,
+
+    // css function
     function: /[\w-]+\s*\(|\)/g,
+
+    operator: /[>+~*,*\/=]|(?<!\w[-])/g,
+
+    // normal css property
     property: /(?<!}[\r\n\s]+)\b([\w\d-]+:(?!:))/g,
+
     number: /(?<!\w)[#+-.]?\d+[%\b\.\w]*/g,
-    operator: /=/g,
+
+    // HTML tag
     tag: /<\/?[\w-]+|(?<=[\w"])>/g,
+
     string: /["'`][^"'`]*["'`]/g,
-    variable: /--[\w\d]+/g,
+
+    // css custom property
+    variable: /--[\w\d]+-?[\w\d]*/g,
+
     comment: /(<!--|\/\*)([\s\S]*?)(-->|\*\/)/g,
+
+    // css media query
     keyword: /@[\w]+\b/g
   };
 
@@ -669,7 +635,7 @@ export class Highlighter {
    *
    * @test (self => {
       return async function (self) {
-        return await self.highlight('html', new Text(''));
+        return await mod.highlight('html', new Text(''));
       }()
      })(self) // true
    */
@@ -705,14 +671,13 @@ export class Highlighter {
    *
    * @test (self => {
    *       return async function (self) {
-   *        const mod = await self.getSyntax();
+   *        const mod = await mod.getSyntax();
    *        return typeof mod;
    *       }
    * })(self) // 'object'
    */
   async getSyntax(syntax = this.highlight) {
-    // console.log('suntax', syntax)
-    if (syntax === "default") {
+    if (syntax === "default" ) {
       return this.defaultSyntaxDef;
     }
 
@@ -739,7 +704,7 @@ export class Highlighter {
    * @returns {Set<Range>}      A set of Range objects representing the highlighted code ranges.
    * @throws  {Error}         If the second argument is not a TEXT_NODE.
    *
-   * @test self.highlightCode({}, new Text('')) === true // true
+   * @test mod.highlightCode({}, new Text('')) === true // true
    */
   highlightCode(syntax = {}, textNode) {
     if (textNode.nodeType !== Node.TEXT_NODE) {
@@ -787,7 +752,7 @@ export class Highlighter {
    * @param   {Node}    node  The node within which the ranges will be set.
    * @returns {Set<Range>}    A set of Range objects representing the matched ranges.
    *
-   * @test self.setRanges(/\w/, '', new Text('')) instanceof Set // true
+   * @test mod.setRanges(/\w/, '', new Text('')) instanceof Set // true
    */
   setRanges(regex, string, node) {
     const ranges = new Set();
@@ -809,7 +774,7 @@ export class Highlighter {
    * Retrieves the CSS highlights associated with the current suffix.
    * @returns {Map<string, object>} - A map containing the CSS highlights entries.
    *
-   * @test self.getHighlights() instanceof Map // true
+   * @test mod.getHighlights() instanceof Map // true
    */
   getHighlights() {
     const entries = new Map();
@@ -828,7 +793,7 @@ export class Highlighter {
    * @param   {String}    type='test' The type of highlights to apply. Defaults to 'test'.
    * @returns {Boolean}           True on success, False on failure
    *
-   * @test self.setHighlight([new Range()]) // true
+   * @test mod.setHighlight([new Range()]) // true
    */
   setHighlight(ranges, type = "test") {
     // Add this.suffix to isolate entries in the CSS Highlights Registry
@@ -848,12 +813,11 @@ export class Highlighter {
    * Creates and returns a style element containing the CSS styles for highlights.
    * @returns {HTMLStyleElement} - The created style element.
    *
-   * @test self.getStyle() instanceof HTMLStyleElement // true
+   * @test mod.getStyle() instanceof HTMLStyleElement // true
    */
   getStyle() {
     const style = document.createElement("style");
     let content = "";
-
     style.id = `highlights${this.suffix}`;
     this.palette.forEach((color, key) => {
       content += `::highlight(${key}${this.suffix}) { color: ${color}}\n`;
@@ -907,7 +871,7 @@ export class Highlighter {
   /**
    * Gets the color palette for the current instance.
    *
-   * @test self.palette instanceof Map // true
+   * @test mod.palette instanceof Map // true
    */
   get palette() {
     return this.#palette || this.defaultColors;
@@ -924,21 +888,21 @@ export class Highlighter {
    *
    * @throws {SyntaxError} If the provided string cannot be parsed as valid JSON.
    *
-   * @test (self => { self.palette = null; return self.palette !== null})(self) // true
-   * @test (self => { self.palette = [["property":"color"]]; return self.palette })(self) // self.palette instanceof Map
+   * @test (self => { mod.palette = null; return mod.palette !== null})(self) // true
+   * @test (self => { mod.palette = [["property":"color"]]; return mod.palette })(self) // mod.palette instanceof Map
    * @test (self => {
-          self.palette = new Map([["property", "color"]]);
-          return self.palette instanceof Map;
+          mod.palette = new Map([["property", "color"]]);
+          return mod.palette instanceof Map;
     })(self) // true
     *
     * @test (self => {
-           self.setAttribute('palette', '[["property", "color"]]');
-           return self.palette instanceof Map;
+           mod.setAttribute('palette', '[["property", "color"]]');
+           return mod.palette instanceof Map;
      })(self) // true
     *
     * @test (self => {
-    *       self.settAttribute('palette', '');
-    *       return self.palette !== '';
+    *       mod.settAttribute('palette', '');
+    *       return mod.palette !== '';
     * })(self) // true
    */
   set palette(value) {
