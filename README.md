@@ -23,18 +23,12 @@ Demo: [https://holmesbryant.github.io/a-code/](https://holmesbryant.github.io/a-
 
 This component makes use of some fairly modern features such as: Dynamic Imports and the CSS Custom Highlight API. If you must support older browsers, please test thoroughly before deploying.
 
-As of this writing (2024-05-02), Firefox requires you to set a custom flag in order to enable this feature, however the feature is enabled by default in the Firefox Nightly builds, so full support should happen soon!
- - In Firefox, enter "about:config" in the address bar.
- - In the field labeled "Search preference name", enter "dom.customHighlightAPI.enabled"
- - set dom.customHighlightAPI.enabled to "true"
-
 ## Features ##
 
-- Removes any common leading whitespace from all lines to create a visually cleaner block.
 - Customize the amount of indentation within a code block.
 - Display the code inline or as a block.
 - Optional line numbers
-- Can highlight HTML/CSS code out of the box (without any external syntax definition files).
+- Can highlight HTML/CSS code out of the box.
 - The highlighter does not inject any spans (or other elements) into your code.
 - Uses the CSS Custom Highlight API.
 - Define custom color palettes on a per-instance basis.
@@ -44,7 +38,7 @@ As of this writing (2024-05-02), Firefox requires you to set a custom flag in or
 
 ### Add the Script ###
 
-	<script type="module" src="a-code.js"></script>
+	<script type="module" src="a-code.min.js"></script>
 
 ### Wrap your code in a `<a-code>...</a-code>` tag ##
 
