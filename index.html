@@ -4,35 +4,14 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>A-Code Web Component</title>
-	<script type="module" src="src/a-code.js"></script>
-	<script type="module" src="extra/a-form.js"></script>
+	<script type="module" src="extra/a-bind.js"></script>
+	<script type="module" src="dist/a-code.min.js"></script>
+	<!-- <script type="module" src="src/a-code.js"></script> -->
 	<script type="module" src="extra/a-tabset.min.js"></script>
 	<link rel="stylesheet" href="extra/styles.css">
+	<link rel="stylesheet" href="dist/a-code.css">
 	<link rel="stylesheet" href="extra/a-tabset.css">
 
-	<style>
-		/*
-			These styles are here instead of in the styles.css file to make it easier to see the manual styling of a-code elements.
-		 */
-		a-code {
-			--indent: 2;
-	    	background-color: var(--bg1);
-	    	border-radius: .5rem;
-			font-weight: normal;
-			padding: 1rem;
-			min-width: 300px;
-	    }
-
-	    a-tabset a-code {
-	    	width: 100%;
-	    }
-
-	    a-code[inline] {
-	    	min-width: 50px;
-			overflow: auto;
-	    	padding: .25rem;
-	    }
-	</style>
 	<script>
 		if (!window.CSS.highlights) alert ('This browser does not yet support the CSS Custom Highlight API')
 	</script>
@@ -47,82 +26,105 @@
 	</details>
 
 	<h2>Demo</h2>
-	<a-form wait="false" success="false" class="sticky" id="stick">
-		<section class="row center">
-			<div>
-				<label for="demo-indent">indent</label>
-				<input name="indent" value="4" id="demo-indent" list="demo-indents" oninput="change(this, 'indent')">
-				<datalist id="demo-indents">
-					<option>1</option>
-					<option>2</option>
-					<option>3</option>
-					<option>4</option>
-					<option>1rem</option>
-					<option>2rem</option>
-					<option>3rem</option>
-					<option>4rem</option>
-					<option>1px</option>
-					<option>2px</option>
-					<option>3px</option>
-					<option>4px</option>
-				</datalist>
-			</div>
-			<div>
-				<label for="demo-highlight">highlight</label>
-				<select id="demo-highlight" onchange="change(this, 'highlight')">
-					<option selected value='reset'>Defaults</option>
-					<option>false</option>
-					<option>javascript</option>
-					<option>html</option>
-				</select>
-			</div>
-			<div>
-				<label for="demo-palette">palette</label>
-				<select id="demo-palette" onchange="change(this, 'palette')">
-					<option value="">Default Palette</option>
-					<option
-						value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
-						Custom Palette
-					</option>
-				</select>
-			</div>
-			<fieldset class="row">
-				<legend>line-numbers</legend>
-				<div>
-					<label for="demo-line-numbers-true">true</label>
-					<input
-					checked
-					type="radio"
-					value="true"
-					name="demo-line-numbers"
-					id="demo-line-numbers-true"
-					onchange="change(this, 'line-numbers')">
-				</div>
-				<div>
-					<label for="demo-line-numbers-false">false</label>
-					<input
-					type="radio"
-					value="false"
-					name="demo-line-numbers"
-					id="demo-line-numbers-false"
-					onchange="change(this, 'line-numbers')">
-				</div>
-			</fieldset>
-			<div>
-				<label for="demo-inline">inline</label>
-				<input type="checkbox" name="inline" id="demo-inline" onchange="change(this, 'inline')">
-			</div>
-		</section>
-	</a-form>
 
-	<section>
+	<section id="demo">
 		<a-tabset>
 			<strong slot="title">Javascript</strong>
 			<article slot="content">
+				<section id="js-demo-form" class="flex">
+					<div class="flex column gap0">
+					<label for="js-demo-indent">indent</label>
+						<a-bind
+							o="#javascript-code"
+							p="indent">
+							<input id="js-demo-indent" list="js-demo-indents">
+						</a-bind>
+
+						<datalist id="js-demo-indents">
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
+							<option>4</option>
+							<option>1rem</option>
+							<option>2rem</option>
+							<option>3rem</option>
+							<option>4rem</option>
+							<option>1px</option>
+							<option>2px</option>
+							<option>3px</option>
+							<option>4px</option>
+						</datalist>
+					</div>
+
+					<div class="flex column gap0">
+					<label for="demo-highlight">highlight</label>
+						<a-bind o="#javascript-code" p="highlight">
+							<select id="demo-highlight">
+								<option value="">Default (html)</option>
+								<option>false</option>
+								<option>javascript</option>
+								<option>html</option>
+							</select>
+						</a-bind>
+					</div>
+
+					<div class="flex column gap0">
+					<label for="demo-palette">palette</label>
+
+						<a-bind o="#javascript-code" p="palette">
+							<select id="demo-palette">
+								<option value="default">Default Palette</option>
+								<option
+									value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
+									Custom Palette
+								</option>
+							</select>
+						</a-bind>
+					</div>
+
+					<fieldset class="flex">
+					<legend>line-numbers</legend>
+						<div class="flex column gap0">
+							<label for="js-line-numbers-true">true</label>
+
+							<a-bind o="#javascript-code" p="lineNumbers">
+								<input
+									type="radio"
+									value="true"
+									name="js-line-numbers"
+									id="js-line-numbers-true">
+							</a-bind>
+						</div>
+
+						<div class="flex column gap0">
+							<label for="js-line-numbers-false">false</label>
+
+							<a-bind o="#javascript-code" p="lineNumbers">
+								<input
+									type="radio"
+									value="false"
+									name="js-line-numbers"
+									id="js-line-numbers-false">
+							</a-bind>
+						</div>
+					</fieldset>
+
+					<div class="flex column gap0">
+					<label for="js-demo-inline">inline</label>
+						<a-bind o="#javascript-code" p="inline">
+						<input
+							type="checkbox"
+							value="true"
+							id="js-demo-inline">
+						</a-bind>
+					</div>
+				</section>
+
 				<a-code
-				class="demo"
-				line-numbers
-				highlight="javascript">
+					id="javascript-code"
+					class="demo"
+					line-numbers
+					highlight="javascript">
 					#! hashbang
 
 					/**
@@ -171,10 +173,100 @@
 
 			<strong slot="title">HTML</strong>
 			<article slot="content">
+				<section id="html-demo-form" class="flex">
+					<div class="flex column gap0">
+					<label for="html-demo-indent">indent</label>
+						<a-bind
+							o="#html-code"
+							p="indent">
+							<input id="html-demo-indent" list="html-demo-indents">
+						</a-bind>
+
+						<datalist id="html-demo-indents">
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
+							<option>4</option>
+							<option>1rem</option>
+							<option>2rem</option>
+							<option>3rem</option>
+							<option>4rem</option>
+							<option>1px</option>
+							<option>2px</option>
+							<option>3px</option>
+							<option>4px</option>
+						</datalist>
+					</div>
+
+					<div class="flex column gap0">
+					<label for="html-demo-highlight">highlight</label>
+						<a-bind o="#html-code" p="highlight">
+							<select id="html-demo-highlight">
+								<option value="">Default (html)</option>
+								<option>false</option>
+								<option>javascript</option>
+								<option>html</option>
+							</select>
+						</a-bind>
+					</div>
+
+					<div class="flex column gap0">
+					<label for="html-demo-palette">palette</label>
+
+						<a-bind o="#html-code" p="palette">
+							<select id="html-demo-palette">
+								<option value="default">Default Palette</option>
+								<option
+									value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
+									Custom Palette
+								</option>
+							</select>
+						</a-bind>
+					</div>
+
+					<fieldset class="flex">
+					<legend>line-numbers</legend>
+						<div class="flex column gap0">
+							<label for="html-line-numbers-true">true</label>
+
+							<a-bind o="#html-code" p="lineNumbers">
+								<input
+									type="radio"
+									value="true"
+									name="html-line-numbers"
+									id="html-line-numbers-true">
+							</a-bind>
+						</div>
+
+						<div class="flex column gap0">
+							<label for="html-line-numbers-false">false</label>
+
+							<a-bind o="#html-code" p="lineNumbers">
+								<input
+									type="radio"
+									value="false"
+									name="html-line-numbers"
+									id="html-line-numbers-false">
+							</a-bind>
+						</div>
+					</fieldset>
+
+					<div class="flex column gap0">
+					<label for="html-demo-inline">inline</label>
+						<a-bind o="#html-code" p="inline">
+						<input
+							type="checkbox"
+							value="true"
+							id="html-demo-inline">
+						</a-bind>
+					</div>
+				</section>
+
 				<a-code
-				class="demo"
-				line-numbers
-				highlight="html">
+					id="html-code"
+					class="demo"
+					line-numbers
+					highlight="html">
 					<textarea>
 						<style>
 							/**** A Comment ****/
@@ -286,57 +378,64 @@
 		</a-tabset>
 	</section>
 
-	<section class="inline-example" id="unstick">
-		<header><h2>Inline Code</h2></header>
-		<div class="row">
-			<a-code inline>
-				<a-code inline>...</a-code >
+	<h2>Examples</h2>
+
+	<section id="examples" class="flex stretch center">
+		<div class="card">
+			<h3>Inline Code</h3>
+			<a-code>
+				<textarea>
+					<a-code inline>...</a-code >
+				</textarea>
 			</a-code>
 
-			<p>Some text <a-code inline> function foo() {}</a-code> some more text.</p>
+			<p>Some text <a-code inline> function foo(){ console.log('foo') }</a-code> some more text.</p>
 		</div>
-	</section>
 
-	<section class="row" id="examples">
-
-		<div>
-			<header><h3>Indent (integer)</h3></header>
+		<div class="card f300">
+			<h3>Indent (integer)</h3>
 			<a-code indent="2">
-				<a-code indent="2" >
-					<article>
-						<h1>A Title</h1>
-						<p>Some text</p>
-					</article>
-				</a-code >
+				<textarea>
+					<a-code indent="2" >
+						<article>
+							<h1>A Title</h1>
+							<p>Some text</p>
+						</article>
+					</a-code>
+				</textarea>
 			</a-code>
 		</div>
 
-		<div>
-			<header><h3>Indent (css length)</h3></header>
+		<div class="card f300">
+			<h3>Indent (css length)</h3>
 			<a-code html indent=".5rem">
-				<a-code indent=".5rem" >
-					<article>
-						<h1>A Title</h1>
-						<p>Some text</p>
-					</article>
-				</a-code >
+				<textarea>
+					<a-code indent=".5rem" >
+						<article>
+							<h1>A Title</h1>
+							<p>Some text</p>
+						</article>
+					</a-code>
+				</textarea>
 			</a-code>
 		</div>
 
-		<div>
-			<header><h3>Add line numbers</h3></header>
+		<div class="card f300">
+			<h3>Add line numbers</h3>
 			<a-code line-numbers>
-				<a-code line-numbers>
-					<article>
-						<h1>A Title</h1>
-						<p>Some text</p>
-					</article>
-				</a-code>
+				<textarea>
+					<a-code line-numbers>
+						<article>
+							<h1>A Title</h1>
+							<p>Some text</p>
+						</article>
+					</a-code>
+				</textarea>
 			</a-code>
 		</div>
 
-		<div>
-			<header><h3>Highlight using Default Defs</h3></header>
+		<div class="card f300">
+		<h3>Highlight HTML/CSS</h3>
 			<a-code id="editable" highlight>
 				<textarea>
 					<a-code highlight>
@@ -349,37 +448,36 @@
 			</a-code>
 		</div>
 
-		<div>
-			<header><h3>Highlight using Keyword</h3></header>
-			<a-code id="editable" highlight="html" edit>
+		<div class="card f300">
+		<h3>Highlight using Keyword</h3>
+			<a-code id="editable" highlight="javascript" edit>
 				<textarea>
-					<a-code highlight="html">
-						<article>
-							<h1>A Title</h1>
-							<p class="foo">Some text</p>
-						</article>
+					<a-code highlight="javascript">
+						function foo(bar) {
+							return bar;
+						}
 					</a-code>
 				</textarea>
 			</a-code>
 		</div>
 
-		<div>
-			<header><h3>Highlight Code using Url</h3></header>
-			<a-code highlight="./syntax.html.js">
-				<a-code highlight="./syntax.html.js">
-					<article>
-						<h1>A Title</h1>
-						<p class="foo">Some text</p>
-					</article>
-				</a-code>
+		<div class="card">
+		<h3>Highlight Code using Url</h3>
+			<a-code highlight="./syntax.javascript.js">
+				<textarea>
+					<a-code
+						highlight="./syntax.javascript.js">
+						console.log('foo');
+					</a-code>
+				</textarea>
 			</a-code>
 		</div>
 
-		<div>
-			<header style="text-align:center">
-				<h3 style="margin-bottom:0">Prevent code execution</h3>
-				<span>Wrap code in textarea (which will be removed before display)</span>
-			</header>
+		<div class="card">
+			<h3>
+				Prevent code execution: Wrap code in textarea
+			</h3>
+
 			<a-code>
 				<textarea>
 					<a-code>
@@ -391,13 +489,11 @@
 			</a-code>
 		</div>
 
-		<div>
-			<header style="text-align:center">
-				<h3 style="margin-bottom:0">
-					Nested Textareas
-				</h3>
-				<span>(escape slashes in nested closing tags with a backslash)</span>
-			</header>
+		<div class="card">
+			<h3>
+				Nested Textareas:
+				<small>escape slashes in nested closing tags with a backslash</small>
+			</h3>
 			<a-code>
 				<textarea>
 					<a-code>

@@ -1,31 +1,10 @@
-
-/*
- * Change attributes on demo elements.
- */
-function change(elem, attr) {
-	let value = elem.value;
-	const demos = document.querySelectorAll('wijit-code.demo');
-
-	switch (attr) {
-	case "inline":
-		value = (elem.checked) ? 'true' : 'false';
-		break;
-	case "highlight":
-		if (elem.value === 'reset') location.reload();
-		break;
-	}
-
-	for (const demo of demos) {
-		demo.setAttribute(attr, value);
-	}
-}
-
 /*
  * Toggle "sticky" quality of Demo form inputs
  */
-function unstickIfNeeded (target, watched) {
-	const stick = document.querySelector('#stick');
-	const unstick = document.querySelector('#unstick');
+function unstickIfNeeded () {
+	const target = document.querySelector('#stick');
+	const watched = document.querySelector('#unstick');
+	if (!target || !watched) return;
 	window.addEventListener('scroll', () => {
 		const offset = watched.offsetTop - target.offsetHeight;
 		if (window.scrollY > offset) {
@@ -70,7 +49,7 @@ function getReadme () {
 	});
 }
 
-unstickIfNeeded(stick, unstick);
+unstickIfNeeded();
 upgradeInputs();
 getReadme();
 

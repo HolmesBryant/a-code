@@ -64,7 +64,7 @@ export class ACode extends HTMLElement {
    * @description The number of spaces to represent a tab character. Can use most css length values.
    * @comment Has public getter (indent)
    */
-  #indent;
+  #indent = 4;
 
   #lineNumbers = false;
 
@@ -81,6 +81,10 @@ export class ACode extends HTMLElement {
    * @description Tracks if a content update is needed.
    */
   #needsUpdate = false;
+
+  #palette = 'default';
+
+  defaults = {};
 
   /**
    * @static
@@ -103,31 +107,25 @@ export class ACode extends HTMLElement {
         --wrap: pre;
         display: block;
         max-width: 100%;
-        vertical-align: middle;
+        vertical-align: top;
+      }
+
+      :host([inline]) {
+        display: inline-block;
+        padding: 0;
       }
 
       section {
-        display: grid;
+        display: inline-grid;
         gap: .5rem;
         grid-template-columns: max-content 1fr;
-      }
-
-      .hidden
-      { display: none; }
-
-      .inline {
-        display: inline;
-        margin: 0;
-        white-space: nowrap;
+        width: 100%;
       }
 
       #content {
         font-family: "Courier New", monospace;
-        margin: 0;
         tab-size: var(--indent);
         white-space: var(--wrap);
-        width: 100%;
-        max-width: 90vw;
         overflow: auto;
       }
 
@@ -138,9 +136,9 @@ export class ACode extends HTMLElement {
       }
     </style>
 
-    <section>
-      <div id="line-numbers"></div>
-      <div id="content"><slot></slot></div>
+    <section part="section">
+      <div id="line-numbers" part="line-numbers"></div>
+      <div id="content" part="content"><slot></slot></div>
     </section>
   `;
 
@@ -164,6 +162,7 @@ export class ACode extends HTMLElement {
     this.textContent = this.resetSpaces(this.getContent());
     if (this.highlight) this.highlightCode();
     if (this.lineNumbers) this.addLineNumbers();
+    this.setDefaults();
 
     slot.addEventListener("slotchange", () => {
       this.updateIfNeeded();
@@ -317,6 +316,15 @@ export class ACode extends HTMLElement {
   }*/
 
   /**
+   * Reset all observed attributes to the default values
+   */
+  reset() {
+    for (const attr of ABind.observedAttributes) {
+      this[attr] = this.defaults[attr];
+    }
+  }
+
+  /**
    * Normalizes indentation in code blocks.
    *
    * @param {String} string - A string of code
@@ -339,6 +347,16 @@ export class ACode extends HTMLElement {
     const spaces = lines.at(-1).match(/^\s*/)[0].length;
     const regex = new RegExp(`^\\s{${spaces}}`, "g");
     return lines.map((line) => line.replace(regex, "")).join("\n");
+  }
+
+  /**
+   * Save default values in this.defaults object
+   */
+  setDefaults() {
+    if (Object.keys(this.defaults).length > 0) return;
+    for (const attr of ACode.observedAttributes) {
+      this.defaults[attr] = this[attr];
+    }
   }
 
   /**
@@ -385,25 +403,23 @@ export class ACode extends HTMLElement {
        // true
    */
   set inline(value) {
-    const node = this.shadowRoot.querySelector("pre");
+    value = value !== "" && value !== 'false' && value !== false;
     switch (value) {
       case "false":
       case false:
-        value = false;
-        this.removeAttribute("inline");
-        if (node) node.classList.remove("inline");
+        this.style.removeProperty('--wrap');
         if (this.hasAttribute("line-numbers")) {
           this.lineNumbers = this.getAttribute("line-numbers");
         }
         break;
       default:
-        value = true;
-        if (node) node.classList.add("inline");
+        this.style.setProperty('--wrap', 'nowrap')
         this.lineNumbers = false;
         break;
     }
 
     this.#inline = value;
+    if (window.abind) abind.update(this, 'inline', value);
   }
 
   /**
@@ -424,9 +440,10 @@ export class ACode extends HTMLElement {
    * @test mod.setAttribute( 'indent', '5' ); return mod.indent; // '5'
    */
   set indent(value) {
-    value =
+    if (!value) value = this.defaults.indent;
     this.style.setProperty("--indent", value);
     this.#indent = value;
+    if (window.abind) abind.update(this, 'indent', value);
   }
 
   /**
@@ -459,6 +476,7 @@ export class ACode extends HTMLElement {
     }
     this.#highlight = value;
     if (this.contentNode) this.updateIfNeeded();
+    if (window.abind) abind.update(this, 'inline', value);
   }
 
   /**
@@ -497,6 +515,8 @@ export class ACode extends HTMLElement {
         }
         break;
     }
+
+    if (window.abind) abind.update(this, 'inline', this.#edit);
   }
 
   /**
@@ -531,6 +551,8 @@ export class ACode extends HTMLElement {
         if (this.contentNode) this.updateIfNeeded();
         break;
     }
+
+    if (window.abind) abind.update(this, 'inline', this.#lineNumbers);
   }
 
   /**
@@ -540,8 +562,9 @@ export class ACode extends HTMLElement {
    * @test mod.palette === false || mod.palette instanceof Map // true
    */
   get palette() {
-    if (this.highlighter) return this.highlighter.palette;
-    return false;
+    return this.#palette;
+    // if (this.highlighter) return this.highlighter.palette;
+    // return false;
   }
 
   /**
@@ -556,7 +579,8 @@ export class ACode extends HTMLElement {
    */
   set palette(value) {
     if (this.highlighter) {
-      this.highlighter.palette = value;
+      this.highlighter.palette = (value === 'default')? "" : value;
+      if (window.abind) abind.update(this, 'inline', value);
     } else {
       console.error("highlighter has not been initialized");
     }
@@ -676,8 +700,8 @@ export class Highlighter {
    *       }
    * })(self) // 'object'
    */
-  async getSyntax(syntax = this.highlight) {
-    if (syntax === "default" ) {
+  async getSyntax(syntax) {
+    if (syntax === "default" || syntax === "html") {
       return this.defaultSyntaxDef;
     }
 
