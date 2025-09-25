@@ -263,9 +263,9 @@ export class ACode extends HTMLElement {
    *
    * @test mod.getContent( self ) // ""
    */
-  getContent(elem = this) {
+  getContent() {
     if (this.children[0] && this.children[0].localName === 'textarea') {
-      return this.textContent;
+      return this.textContent.replace("\\/", "/");
     } else {
       return this.convertHTML(this.innerHTML);
     }

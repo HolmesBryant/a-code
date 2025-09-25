@@ -5,6 +5,8 @@ A custom element for displaying code snippets with consistent formatting and opt
 Demo: [https://holmesbryant.github.io/a-code/](https://holmesbryant.github.io/a-code/)
 
 ## Changelog
+- v1.22
+	- Fixed rendering code of nested textareas
 - v1.21
     - Changed default css display of :host tag from `inline-block` to `block`.
 - v1.2
@@ -52,12 +54,13 @@ As of this writing (2024-05-02), Firefox requires you to set a custom flag in or
 		}
 	</a-code>
 
-If the code you wish to display contains self-executing elements, or if you wish to display an html tag with each attribute on a seperate line, wrap your code in a textarea.
+If the code you wish to display contains self-executing elements, or if you wish to display an html tag with each attribute on a separate line, wrap your code in a textarea.
 This will prevent the browser from interpreting your code.
 
 	<a-code>
 		<textarea>
-			<img src="false" onerror="alert('foo!')">
+			<img
+				src="false" onerror="alert('foo!')">
 		</textarea>
 	</a-code>
 
@@ -68,7 +71,7 @@ Additional textareas (specifically, textarea closing tags) inside the main texta
 	<a-code>
 		<textarea>
 			<img src="false" onerror="alert('foo!')">
-			<textarea class="textarea_code_to_display">
+			<textarea>
 				...
 			<\/textarea>
 		</textarea>
@@ -304,8 +307,7 @@ In the following example, the "tag" definition will match everyting between and 
 
 
 Under the hood, the component takes the ranges from a supplied Function,
-or creates ranges from a supplied RexExp or Array,
-and passes those ranges to [an instance of Highlight](https://developer.mozilla.org/en-US/docs/Web/API/Highlight).
+or creates ranges from a supplied RexExp or Array, and passes those ranges to [an instance of Highlight](https://developer.mozilla.org/en-US/docs/Web/API/Highlight).
 
 The Highlight instance is then passed to the global [CSS:highlights static property](https://developer.mozilla.org/en-US/docs/Web/API/CSS/highlights_static).
 
