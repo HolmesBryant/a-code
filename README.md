@@ -79,17 +79,20 @@ Additional textareas (specifically, textarea closing tags) inside the main texta
 
 ## Available Attributes ##
 
-- **inline** (default: false) | Acceptable values [' ', 'true', 'false']
+- **inline** (default: false)
+	- Acceptable values: null, false, 'false', any truthy value
 	- Add this attribute if you want the code to appear inline instead of as a block of text.
 	It does not require a value, but if you need to give it a value for some reason, use "true" or "false".
 	"false" negates the effect as if the attribute were not present at all.
 	If you need to adjust the css for inline code, the css selector is: `a-code[inline]{...}`
 
-- **indent** (default: 2) | Acceptable values [integer, css length value]
+- **indent** (default: 2)
+	- Acceptable values: integer, css length value
 	- Add this attribute to customize the degree of indentation.
 	  It will take an integer or a css length value such as 4px, 2rem etc.
 
-- **highlight** (default: "") | Acceptable values ["", "false", keyword, url]
+- **highlight** (default: "html")
+	- Acceptable values: null, false, "false", keyword, url]
 	- Add this attribute to highlight your code.
 	  The code which determines what text to highlight resides in its own "syntax" file named "syntax.[language].js".
 	  Ideally, this file should be located in the same directory as a-code.js.
@@ -107,10 +110,12 @@ Additional textareas (specifically, textarea closing tags) inside the main texta
 		    - If you are importing a file path, the path should begin with "/", "./", or "../" AND must be be somewhere inside the Document Root.
 		    - Example: "../parentFolder/otherFolder/syntax.html.js"
 
-- **line-numbers** (default: false) | Acceptable values [truthy values, 'false']
+- **line-numbers** (default: false)
+	- Acceptable values: null, truthy values, false, 'false'
     - Add this attribute to display a line number in front of each line of code. A truthy value is any string except "false".
 
-- **palette** (default: null) | Acceptable values [JSON parsable string reresenting two dimensional array]
+- **palette** (default: null)
+	- Acceptable values: JSON parsable string reresenting a two dimensional array
 	- You may define your own color palette on a per-instance basis. The value of this attribute must be a valid JSON string representing a two-dimensional array of key => value pairs. The keys correspond to the properties defined in the syntax file. The values can be any valid css color value.
 	Example: [["tag", "red"], ["function", "blue"]]
 	- You may also define a custom palette using javascript.
@@ -130,9 +135,9 @@ Additional textareas (specifically, textarea closing tags) inside the main texta
 
 	<a-code indent=".5rem">...</a-code>
 
-### Highlight HTML Code ###
+### Highlight HTML/CSS Code ###
 
-	<a-code highlight="html">...</a-code>
+	<a-code highlight>...</a-code>
 
 ### Highlight Javascript Code ###
 
@@ -158,7 +163,7 @@ Unless your syntax definition file adds new key words, you can just use the defa
 	// Array
 	customElements.whenDefined('a-code')
 	.then (() => {
-		const instance = document.querySelector('a-code#instance');
+		const instance = document.querySelector('a-code');
 		const colors = [
 			[ "argument", "hsl(32, 93%, 66%)" ],
 			[ "comment", "hsl(221, 12%, 69%)" ],
@@ -179,7 +184,7 @@ Unless your syntax definition file adds new key words, you can just use the defa
 	// Map
 	customElements.whenDefined( 'a-code' )
 	.then (() => {
-		const instance = document.querySelector( 'a-code#instance' );
+		const instance = document.querySelector( 'a-code' );
 		const colors = new Map();
 		colors.set( "argument", "orange" );
 		colors.set( "comment", "gray" );
@@ -202,8 +207,8 @@ Unless your syntax definition file adds new key words, you can just use the defa
 
 Syntax files are used when highlighting code.
 These files are javascript modules which are imported into the component upon initialization.
-The value of the "highlight" attribute on the <a-code> tag corresponds to a syntax file.
-If "highlight" has a value of "html", the component looks for a file named "syntax.html.js" in the same directory as the component script.
+The value of the "highlight" attribute on the `a-code` tag corresponds to a syntax file.
+for example, if "highlight" has a value of "javascript", the component looks for a file named "syntax.javascript.js" in the same directory as the component script.
 
 You may use your own syntax definitions by creating a syntax definition file.
 The default naming scheme for this file is "syntax.[language_name].js", so if you want to create a syntax file for Python, the file name would be "syntax.python.js".
@@ -240,7 +245,7 @@ If you add a new property name, you must add a new color palette entry which inc
 	//scripts.js
 	customElements.whenDefined( 'a-code' )
 	.then (() => {
-		const instance = document.querySelector( 'a-code#instance' );
+		const instance = document.querySelector( 'a-code' );
 		instance.palette.set( "newProperty", "LemonChiffon" );
 	});
 
