@@ -5,9 +5,14 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>A-Code Web Component</title>
 	<script type="module" src="extra/a-bind.min.js"></script>
+
 	<script type="module" src="dist/a-code.min.js"></script>
 	<!-- <script type="module" src="src/a-code.js"></script> -->
+
+	<script type="module" src="extra/a-markdown.min.js"></script>
+
 	<script type="module" src="extra/a-tabset.min.js"></script>
+
 	<link rel="stylesheet" href="extra/styles.css">
 	<link rel="stylesheet" href="dist/a-code.css">
 	<link rel="stylesheet" href="extra/a-tabset.css">
@@ -18,25 +23,29 @@
 </head>
 <body>
 	<h1>A-Code Web Component</h1>
-	<p>A custom element for displaying code snippets with consistent formatting and optional highlighting: <a href="https://github.com/HolmesBryant/a-code">Github Repo</a></p>
+	<p>A custom element for displaying code snippets with consistent formatting and optional highlighting:
+		<a href="https://github.com/HolmesBryant/a-code">Github Repo</a> |
+		<a href="tests.html">tests</a>
+	</p>
 
 	<details>
 	<summary>README</summary>
-		<div id="instructions"> </div>
+		<a-markdown file="README.md"></a-markdown>
 	</details>
 
 	<h2>Demo</h2>
 
 	<section id="demo">
-		<a-tabset>
+		<a-tabset active="1">
 			<strong slot="title">Javascript</strong>
 			<article slot="content">
 				<section id="js-demo-form" class="flex">
 					<div class="flex column gap0">
+
 					<label for="js-demo-indent">indent</label>
 						<a-bind
-							o="#javascript-code"
-							p="indent">
+							model="#javascript-code"
+							property="indent">
 							<input id="js-demo-indent" list="js-demo-indents">
 						</a-bind>
 
@@ -58,9 +67,8 @@
 
 					<div class="flex column gap0">
 					<label for="demo-highlight">highlight</label>
-						<a-bind o="#javascript-code" p="highlight">
+						<a-bind model="#javascript-code" property="highlight">
 							<select id="demo-highlight">
-								<option value="">Default (html)</option>
 								<option>false</option>
 								<option>javascript</option>
 								<option>html</option>
@@ -71,9 +79,15 @@
 					<div class="flex column gap0">
 					<label for="demo-palette">palette</label>
 
-						<a-bind o="#javascript-code" p="palette">
+					<abind
+						model="#javascript-code"
+						property="palette">
+						<output>...</output>
+					</abind>
+
+						<a-bind model="#javascript-code" property="palette">
 							<select id="demo-palette">
-								<option value="default">Default Palette</option>
+								<option value="null">Default Palette</option>
 								<option
 									value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
 									Custom Palette
@@ -87,7 +101,7 @@
 						<div class="flex column gap0">
 							<label for="js-line-numbers-true">true</label>
 
-							<a-bind o="#javascript-code" p="lineNumbers">
+							<a-bind model="#javascript-code" property="lineNumbers">
 								<input
 									type="radio"
 									value="true"
@@ -99,7 +113,7 @@
 						<div class="flex column gap0">
 							<label for="js-line-numbers-false">false</label>
 
-							<a-bind o="#javascript-code" p="lineNumbers">
+							<a-bind model="#javascript-code" property="lineNumbers">
 								<input
 									type="radio"
 									value="false"
@@ -111,7 +125,7 @@
 
 					<div class="flex column gap0">
 					<label for="js-demo-inline">inline</label>
-						<a-bind o="#javascript-code" p="inline">
+						<a-bind model="#javascript-code" property="inline">
 						<input
 							type="checkbox"
 							value="true"
@@ -177,8 +191,8 @@
 					<div class="flex column gap0">
 					<label for="html-demo-indent">indent</label>
 						<a-bind
-							o="#html-code"
-							p="indent">
+							model="#html-code"
+							property="indent">
 							<input id="html-demo-indent" list="html-demo-indents">
 						</a-bind>
 
@@ -200,7 +214,7 @@
 
 					<div class="flex column gap0">
 					<label for="html-demo-highlight">highlight</label>
-						<a-bind o="#html-code" p="highlight">
+						<a-bind model="#html-code" property="highlight">
 							<select id="html-demo-highlight">
 								<option value="">Default (html)</option>
 								<option>false</option>
@@ -212,8 +226,7 @@
 
 					<div class="flex column gap0">
 					<label for="html-demo-palette">palette</label>
-
-						<a-bind o="#html-code" p="palette">
+						<a-bind model="#html-code" property="palette">
 							<select id="html-demo-palette">
 								<option value="default">Default Palette</option>
 								<option
@@ -229,7 +242,7 @@
 						<div class="flex column gap0">
 							<label for="html-line-numbers-true">true</label>
 
-							<a-bind o="#html-code" p="lineNumbers">
+							<a-bind model="#html-code" property="lineNumbers">
 								<input
 									type="radio"
 									value="true"
@@ -241,7 +254,7 @@
 						<div class="flex column gap0">
 							<label for="html-line-numbers-false">false</label>
 
-							<a-bind o="#html-code" p="lineNumbers">
+							<a-bind model="#html-code" property="lineNumbers">
 								<input
 									type="radio"
 									value="false"
@@ -253,7 +266,7 @@
 
 					<div class="flex column gap0">
 					<label for="html-demo-inline">inline</label>
-						<a-bind o="#html-code" p="inline">
+						<a-bind model="#html-code" property="inline">
 						<input
 							type="checkbox"
 							value="true"
@@ -263,10 +276,11 @@
 				</section>
 
 				<a-code
+					highlight
+					line-numbers
 					id="html-code"
 					class="demo"
-					line-numbers
-					highlight="html">
+					>
 					<textarea>
 						<style>
 							/**** A Comment ****/
@@ -321,7 +335,7 @@
 							  	linear-gradient(336deg, rgba(0,0,255,.8), rgba(0,0,255,0) 70.71%);
 								}
 
-								section[data-foo="bar"] {
+								section[data-fomodel="bar"] {
 									margin: 0 auto 1rem auto;
 									padding: 1rem;
 								}
@@ -343,7 +357,7 @@
 
 						<p class="some-class">Some Text</p>
 						<div>
-							<label for="test-number" data-foo="" id=foo>Number</label>
+							<label for="test-number" data-fomodel="" id=foo>Number</label>
 
 							<input
 								name="input"
@@ -389,7 +403,7 @@
 				</textarea>
 			</a-code>
 
-			<p>Some text <a-code inline> function foo(){ console.log('foo') }</a-code> some more text.</p>
+			<p>Some text <a-code inline> function foo() { ... }</a-code> some more text.</p>
 		</div>
 
 		<div class="card f300">
@@ -508,8 +522,5 @@
 			</a-code>
 		</div>
 	</section>
-
-	<script src="extra/scripts.js"></script>
-	<!-- comment -->
 </body>
 </html>
