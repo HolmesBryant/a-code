@@ -1,151 +1,203 @@
 # A-Code Web Component
 
-A custom element for displaying code snippets with consistent formatting and optional highlighting.
+![alt text](https://img.shields.io/badge/License-GPL--3.0-blue.svg)
+
+a-code is a lightweight, modern custom element for displaying code snippets. It handles indentation normalization, line numbering, and syntax highlighting without polluting the DOM with unnecessary <span> tags.
 
 Demo: [https://holmesbryant.github.io/a-code/](https://holmesbryant.github.io/a-code/)
 
-## Changelog
-- v1.22
-	- Fixed rendering code of nested textareas
-- v1.21
-    - Changed default css display of :host tag from `inline-block` to `block`.
-- v1.2
-	- Adjusted html syntax so it also covers css
-	- Added html/css as default syntax so you don't have to provide a value to the "highlight" attribute if you are just displaying html/css.
-- v1.02
-    - Added "property" to default color palette for highlighting properties
-- v1.01
-    - added 'scriptLoaded' event which fires on document when the full text of the script being tested has been loaded. This only occurs when lineNumbers is true (or the 'line-numbers' attribute is present).
-    - Changed the default white-space wrapping to 'pre' from 'pre-wrap'.
-    - Exposed css custom variable '--wrap' which affects white-space wrapping.
+## Why use A-Code?
 
-## Note ##
+### Modern Rendering:
 
-This component makes use of some fairly modern features such as: Dynamic Imports and the CSS Custom Highlight API. If you must support older browsers, please test thoroughly before deploying.
+Uses the CSS Custom Highlight API. It does not inject HTML elements into your code text. It uses virtual ranges for high-performance rendering.
 
-## Features ##
+### Clean DOM:
 
-- Customize the amount of indentation within a code block.
-- Display the code inline or as a block.
-- Optional line numbers
-- Can highlight HTML/CSS code out of the box.
-- The highlighter does not inject any spans (or other elements) into your code.
-- Uses the CSS Custom Highlight API.
-- Define custom color palettes on a per-instance basis.
-- Easy system for making your own syntax highlighters.
+Your code resides in a Shadow DOM, isolated from global page styles.
 
-## Usage ##
+### Smart Indentation:
 
-### Add the Script ###
+Automatically detects and strips common leading whitespace so your code aligns perfectly, regardless of how it's nested in your HTML file.
 
-	<script type="module" src="a-code.min.js"></script>
+**Note:** In order to normalize the indentation, the component converts all leading spaces on each line of your code to tabs. This means each line of your code should be preceeded by **all spaces** or **all tabs**. Mixing spaces and tabs will most likely produce a result you will not like.
 
-### Wrap your code in a `<a-code>...</a-code>` tag ##
+### Dynamic Loading:
 
+Syntax definitions are imported dynamically only when needed.
+
+## Browser Support
+
+This component relies on the **CSS Custom Highlight API**.
+
+- Chrome: 105+
+
+- Edge: 105+
+
+- Safari: 17.2+
+
+- Firefox: 117+
+
+## Usage
+
+### 1. Include the Script
+
+Save a-code.min.js to your project and import it. You must add the `type="module"` attribute to the script tag.
+
+```html
+	<script type="module" src="path/to/a-code.min.js">
+	</script>
+```
+
+### 2. wrap your code in an `<a-code>` tag
+
+```html
 	<a-code>
-		function someFunction(value) {
-			return value;
-		}
+  	function helloWorld() {
+    	console.log("Hello!");
+  	}
 	</a-code>
+```
 
-If the code you wish to display contains self-executing elements, or if you wish to display an html tag with each attribute on a separate line, wrap your code in a textarea.
-This will prevent the browser from interpreting your code.
+### Displaying HTML (The Textarea Trick)
 
+If you are displaying HTML markup, the browser will try to parse it before a-code reads it. To prevent this, wrap the code inside a `<textarea>`. a-code detects this automatically and uses the textarea's value.
+
+```html
 	<a-code>
+  	<textarea>
+    	<div class="container">
+      	<h1>Title</h1>
+    	</div>
+  	</textarea>
+	</a-code>
+```
+
+**Note:** If your code snippet itself contains a `</textarea>`, you must escape the slash in the closing tag like so: <\/textarea>. The component will automatically unescape it for display.
+
+```html
+<a-code>
+	<textarea>
+		<img src="false" onerror="alert('foo!')">
 		<textarea>
-			<img
-				src="false" onerror="alert('foo!')">
-		</textarea>
-	</a-code>
+			This textarea is part of the code to display.
+		<\/textarea>
+	</textarea>
+</a-code>
+```
 
-**Important!**
+## API Reference
 
-Additional textareas (specifically, textarea closing tags) inside the main textarea wrapper cause the rendering engine to truncate the content, so you must escape the slash in the closing tags of any extra textareas with a backslash. The component will remove these backslashes before displaying the code.
+### Attributes
 
-	<a-code>
-		<textarea>
-			<img src="false" onerror="alert('foo!')">
-			<textarea>
-				...
-			<\/textarea>
-		</textarea>
-	</a-code>
+| Attribute		|	Type				|	Default	|	Description																										|
+| :---------	| :---------- | :------ | :------------------------------------------------------------ |
+| highlight		|	String			|	html		| The syntax language to use.																		|
+| line-numbers|	Boolean			|	false		|	Displays line numbers in the gutter.													|
+| indent			|	Number			| 2				|	The tab size.																									|
+| wrap				|	String			|	pre			|	Controls text wrapping. Common values: pre, pre-wrap, nowrap.	|
+| inline			|	Boolean			|	false		|	Renders the component inline-block instead of block.					|
+| palette			|	JSON String |	null		|	A JSON string defining custom colors.													|
 
-## Available Attributes ##
+### Properties
 
-- **inline** (default: false)
-	- Acceptable values: null, false, 'false', any truthy value
-	- Add this attribute if you want the code to appear inline instead of as a block of text.
-	It does not require a value, but if you need to give it a value for some reason, use "true" or "false".
-	"false" negates the effect as if the attribute were not present at all.
-	If you need to adjust the css for inline code, the css selector is: `a-code[inline]{...}`
+You can access and modify these properties on the DOM element using JavaScript.
 
-- **indent** (default: 2)
-	- Acceptable values: integer, css length value
-	- Add this attribute to customize the degree of indentation.
-	  It will take an integer or a css length value such as 4px, 2rem etc.
+- **element.value (String):** Get or set the text content of the code block programmatically.
 
-- **highlight** (default: "html")
-	- Acceptable values: null, false, "false", keyword, url]
-	- Add this attribute to highlight your code.
-	  The code which determines what text to highlight resides in its own "syntax" file named "syntax.[language].js".
-	  Ideally, this file should be located in the same directory as a-code.js.
-	  The value "false" will negate the effect, as if the attribute were not present at all.
-	  An empty string, or no value at all, will highlight the code using the default syntax (which is tuned for HTML/CSS).
+- **element.highlight:** Gets/Sets syntax.
 
-	  - **Keywords:** You can provide a simple keyword, such as "html" or "javascript".
-   	    - The component will look for a file named "syntax.[keyword].js" in the **same folder** as wigit-code.js, and try to import it.
-		    - Make sure you have the appropriate syntax file in this folder.
+- **element.inline:** Gets/Sets inline mode.
 
-	  - **URLs:** Alternatively, you can provide a network url or a file path.
-		    - If you are importing over a network, you should include the appropriate protocol such as "http://" or "https://".
-		    - If the file you are importing is located on a different domain, make sure the server hosting the file allows cross-origin resource sharing (CORS).
-		    - Example: "https://mydomain/path/to/file.js"
-		    - If you are importing a file path, the path should begin with "/", "./", or "../" AND must be be somewhere inside the Document Root.
-		    - Example: "../parentFolder/otherFolder/syntax.html.js"
+- **element.indent:** Gets/Sets indentation.
 
-- **line-numbers** (default: false)
-	- Acceptable values: null, truthy values, false, 'false'
-    - Add this attribute to display a line number in front of each line of code. A truthy value is any string except "false".
+- **element.palette:** Gets/Sets the color palette (accepts a Map or Object).
 
-- **palette** (default: null)
-	- Acceptable values: JSON parsable string reresenting a two dimensional array
-	- You may define your own color palette on a per-instance basis. The value of this attribute must be a valid JSON string representing a two-dimensional array of key => value pairs. The keys correspond to the properties defined in the syntax file. The values can be any valid css color value.
-	Example: [["tag", "red"], ["function", "blue"]]
-	- You may also define a custom palette using javascript.
-	The process is described below.
+## Examples
 
-## Examples ##
+### 1. Changing Syntax and Wrapping
 
-### Inline Code ###
+Import a specific syntax file (referenced by keyword or url) and allow text to wrap to the next line.
 
-	<a-code inline>...</a-code>
+```html
+<a-code highlight="javascript" wrap="pre-wrap">
+	const longString = "This is a very long string that will wrap automatically if the container is too small.";
+</a-code>
+```
 
-### Custom Tab Size (integer) ###
+**Note:** The component looks for syntax.javascript.js in the same directory as a-code.js.
 
-	<a-code indent="4">...</a-code>
+### 2. Line Numbers and Custom Indent
 
-### Custom Tab Size (css length) ###
+```html
+<a-code line-numbers indent="4">
+	body {
+  	  background: #000;
+    	color: #fff;
+	}
+</a-code>
+```
 
-	<a-code indent=".5rem">...</a-code>
+### 3. Programmatic Updates
 
-### Highlight HTML/CSS Code ###
+Using the value setter.
 
-	<a-code highlight>...</a-code>
+```JavaScript
+const codeBlock = document.querySelector('a-code');
+codeBlock.value = "console.log('Updated dynamically!');";
+codeBlock.highlight = "javascript";
+```
 
-### Highlight Javascript Code ###
+### 4. Custom Syntax Path
 
-	<a-code highlight="javascript">...</a-code>
+If your syntax files are stored in a different folder, provide the relative path.
 
-### Providing a URL to the Highlighter ###
+```html
+<a-code highlight="./assets/syntax/syntax.python.js">
+	def foo():
+    	print("bar")
+</a-code>
+```
 
-	<a-code highlight="../path/to/syntax.my-syntax.js">...</a-code>
+## Customization
 
-## Custom Color Palettes ##
+### Color Palettes
+
+You can customize the colors used for highlighting by passing a palette. This can be done via the attribute (JSON) or property (Map/Array).
+
+Default Token Types: argument, comment, function, keyword, number, operator, property, string, variable, tag.
+
+JavaScript Example:
+
+```JavaScript
+const el = document.querySelector('a-code');
+const myColors = new Map([
+	["argument", "orange"],
+	["comment", "gray"],
+	["function", "rgb(97, 175, 239)"],
+	["keyword", "purple"],
+	["string", "#98c379"]
+]);
+el.palette = myColors;
+```
+
+#### Creating Custom Syntax Files
+
+To support a new language, create a JavaScript module file (e.g., syntax.python.js). It must default export an object where keys are token names and values are RegExp (with global flag), Arrays of keywords, or Functions.
+
+Example syntax.python.js:
+
+
+```JavaScript
+
+```
+## In-depth Explaination
+
+### Custom Color Palettes
 
 If you have enabled syntax highlighting, you may define custom color palettes via the "palette" attribute or by directly setting the palette property.
 
-You may define your palette as a two dimensional array of key => value pairs, a JSON string representing a two dimensional array, or a javascript Map (regardless, the component will convert it into a Map).
+You may define your palette as a two dimensional array of key => value pairs, a JSON string representing a two dimensional array, or a javascript Map. Regardless of how you define it, the component will convert it into a Map.
 
 Each key should correspond to a property in the syntax definition file you are using.
 Each value should be a valid css color value.
@@ -154,50 +206,55 @@ The default keys are listed in the example below.
 
 Unless your syntax definition file adds new key words, you can just use the default keys. You do not have to include every key, the properties/values are merged into the default scheme, so any keys you omit will take the default color.
 
-	// Array
-	customElements.whenDefined('a-code')
-	.then (() => {
-		const instance = document.querySelector('a-code');
-		const colors = [
-			[ "argument", "hsl(32, 93%, 66%)" ],
-			[ "comment", "hsl(221, 12%, 69%)" ],
-			[ "function", "hsl(210, 50%, 60%)" ],
-			[ "keyword", "hsl(300, 30%, 68%)" ],
-			[ "number", "hsl(32, 93%, 50%)" ],
-			[ "operator", "red" ],
-			[ "property", "orchid" ],
-			[ "string", "hsl(114, 31%, 68%)" ],
-			[ "variable", "darkkhaki" ],
-			[ "tag", "indianred" ]
-		];
-		// assign Array to palette
-		instance.palette = colors;
-	});
+```javascript
+// Array
+customElements.whenDefined('a-code')
+.then (() => {
+	const instance = document.querySelector('a-code');
+	const colors = [
+		[ "argument", "hsl(32, 93%, 66%)" ],
+		[ "comment", "hsl(221, 12%, 69%)" ],
+		[ "function", "hsl(210, 50%, 60%)" ],
+		[ "keyword", "hsl(300, 30%, 68%)" ],
+		[ "number", "hsl(32, 93%, 50%)" ],
+		[ "operator", "red" ],
+		[ "property", "orchid" ],
+		[ "string", "hsl(114, 31%, 68%)" ],
+		[ "variable", "darkkhaki" ],
+		[ "tag", "indianred" ]
+	];
+	// assign Array to palette
+	instance.palette = colors;
+});
+```
 
+```javascript
+// Map
+customElements.whenDefined( 'a-code' )
+.then (() => {
+	const instance = document.querySelector( 'a-code' );
+	const colors = new Map();
+	colors.set( "argument", "orange" );
+	colors.set( "comment", "gray" );
+	colors.set( "function", "dodgerblue" );
+	colors.set( "keyword", "purple" );
+	colors.set( "number", "darksalmon" );
+	colors.set( "operator", "darkred" );
+	colors.set( "property", "orchid" )
+	colors.set( "string", "darkgreen" );
+	colors.set( "tag", "olive" );
+	colors.set( "variable", "darkkhaki" )
+	// assign Map to palette
+	instance.palette = colors;
+});
+```
 
-	// Map
-	customElements.whenDefined( 'a-code' )
-	.then (() => {
-		const instance = document.querySelector( 'a-code' );
-		const colors = new Map();
-		colors.set( "argument", "orange" );
-		colors.set( "comment", "gray" );
-		colors.set( "function", "dodgerblue" );
-		colors.set( "keyword", "purple" );
-		colors.set( "number", "darksalmon" );
-		colors.set( "operator", "darkred" );
-		colors.set( "property", "orchid" )
-		colors.set( "string", "darkgreen" );
-		colors.set( "tag", "olive" );
-		colors.set( "variable", "darkkhaki" )
-		// assign Map to palette
-		instance.palette = colors;
-	});
+```html
+// JSON string
+<a-code palette='[["key", "color"]]'>...</a-code>
+```
 
-	// JSON string
-	<a-code palette="[["key", "color"]]">...</a-code>
-
-## Custom Syntax Definitions ##
+### Custom Syntax Definitions
 
 Syntax files are used when highlighting code.
 These files are javascript modules which are imported into the component upon initialization.
@@ -224,24 +281,28 @@ A syntax definition file consists of a single exported object containing several
 		variable: ...
 	};
 
-Each property corresponds to a CSS Custom Highlight API css rule which is injected in a style tag into the head of the document.
+Each property corresponds to a CSS Custom Highlight API css rule.
 
 The default properties are the same as those desctribed in **Custom Color Palettes**.
 
 If you add a new property name, you must add a new color palette entry which includes the new property name and a color.
 
-	//syntax.example.js
-	export default {
-		...
-		newProperty: ...
-	}
+```javascript
+//syntax.example.js
+export default {
+	...
+	newProperty: ...
+}
+```
 
-	//scripts.js
-	customElements.whenDefined( 'a-code' )
-	.then (() => {
-		const instance = document.querySelector( 'a-code' );
-		instance.palette.set( "newProperty", "LemonChiffon" );
-	});
+```javascript
+//scripts.js
+customElements.whenDefined( 'a-code' )
+.then (() => {
+	const instance = document.querySelector( 'a-code' );
+	instance.palette.set( "newProperty", "LemonChiffon" );
+});
+```
 
 The value for each property can be an Array, Function, RexExp or null.
 
@@ -274,13 +335,14 @@ Use "node" when invoking range.setStart(node, index) and range.setEnd(node, inde
 			let match, range;
 			const ranges = [];
 			const regex = /<\/?[^>]+>/g;
-		    while( match = regex.exec( string ) ) {
+		  while( match = regex.exec( string ) ) {
 				range = new Range();
 				range.setStart( node, match.index );
 				range.setEnd( node, match.index + match[0].length );
 				ranges.push( range );
-		    }
-		    // return flat array of Range objects
+		  }
+
+		  // return flat array of Range objects
 			return ranges;
 		},
 		...
@@ -295,7 +357,7 @@ Null is used when you want to include a property, but don't really have a use fo
 
 **It is important to note that the effect of each following item supercedes the effect of the previous one (depending, of course, on how the definitions are written).**
 
-In the following example, the "tag" definition will match everyting between and including angle brackets (including strings), but since the "string" definition follows it, any strings within the angle brackets will be colored according the the string color, not the tag color.
+In the following example, the "tag" definition will match everyting between and including angle brackets (including strings), but since the "string" definition follows it, any strings within the angle brackets will be colored according to the string color, not the tag color.
 
 	// example
 	export default {
@@ -310,13 +372,20 @@ or creates ranges from a supplied RexExp or Array, and passes those ranges to [a
 
 The Highlight instance is then passed to the global [CSS:highlights static property](https://developer.mozilla.org/en-US/docs/Web/API/CSS/highlights_static).
 
-Then a style tag is inserted into the head of the document containing a set of style highlights.
+## Changelog
 
-	<style>
-		::highlight(propertyName) {
-			color: someColor;
-		}
-		...
-	</style>
+- v2.0.1
 
-[More information about the CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API)
+	- Added wrap attribute to control CSS white-space (e.g., pre-wrap).
+
+	- Added value getter/setter to easily change content programmatically.
+
+- v2.0.0
+
+	- Refactor: Styles are now injected using CSSStyleSheet and adoptedStyleSheets into the Shadow DOM. This prevents styles from bleeding out or conflicting with other instances.
+
+	- Refactor: Attributes are now strictly synced with properties.
+
+- v1.13 : Fixed memory leaks and AbortController issues when removing the element from the DOM.
+
+- v1.1 : Default highlight set to html (covers HTML and CSS).

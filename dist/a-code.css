@@ -1,7 +1,5 @@
 a-code {
-	--indent: 2;
 	--line-number-color: gray;
-	--wrap: pre;
  }
 
 a-code::part(section) {

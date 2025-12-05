@@ -56,8 +56,6 @@ body {
 }
 
 /**** Backgrounds ****/
-	code
-	{ background: var(--bg1-color); }
 
 	aside,
 	details,
@@ -71,14 +69,13 @@ body {
 	.card
 	{ background: var(--bg3-color) }
 
-	button.primary
-	{ background: var(--accent-color); }
-
 	input,
 	select,
 	textarea
 	{ background: var(--bg4-color); }
 
+	hr,
+	button.primary,
   button:hover,
   summary:hover,
   details[open] > summary,
@@ -92,7 +89,6 @@ body {
 /**** Borders ****/
 	button,
 	details,
-	hr,
 	input,
 	select,
 	option,
@@ -100,21 +96,31 @@ body {
 	.card
 	{ border: 1px solid var(--border-color); }
 
+	output
+	{ border: 1px dashed var(--border-color); }
+
   article,
   button,
   details,
+  fieldset,
   input,
   section,
   select,
   summary,
   textarea,
   .card
-  { border-radius: .5rem; }
+  { border-radius: .25rem; }
 
-  .nofrills {
-  	border: none;
-  	border-radius: 0;
+  details[open] > summary {
+  	border-bottom-left-radius: 0;
+  	border-bottom-right-radius: 0;
   }
+
+  .nofrills
+  { border: none }
+
+  [contenteditable]:hover
+  { border-color: var(--accent-color); }
 
 /**** Text ****/
 	a
@@ -174,34 +180,40 @@ body {
 	{ caret-color: var(--accent-color); }
 
 /**** Structure ****/
-	aside
-	{ padding: var(--pad); }
+	body *
+	{ box-sizing: border-box; }
 
 	button
 	{ padding: .5rem; }
 
-	details
+	code
+	{ padding:  0 var(--pad); }
+
+	details#readme
 	{ overflow: auto; }
 
-	details[open] {
+	details#readme[open] {
 		height: 100%;
 		max-height: 80vh;
 	}
 
-	details[open] > summary
-	{ margin-bottom: 1rem; }
+	details[open] > summary {
+		margin-bottom: 1rem;
+		position: sticky;
+		top: 0;
+	}
 
 	div
 	{ align-items: center; }
-
-	fieldset > wijit-code
-  { width: 100%; }
 
 	h2
 	{ margin-left: 1rem; }
 
 	header
 	{ min-height: 75px; }
+
+	hr
+	{ height: 1px; }
 
 	button,
 	input,
@@ -229,6 +241,15 @@ body {
 	option
 	{ padding: var(--pad); }
 
+	output
+	{
+		display: inline-block;
+		font-family: "Courier New" ui-monospace;
+		min-width: var(--min);
+		min-height: 1ch;
+		white-space: pre-wrap;
+	}
+
 	pre {
 		margin: 0;
 		min-height: var(--min);
@@ -242,14 +263,16 @@ body {
 	select::-webkit-scrollbar
 	{ display: none; }
 
-	select
-	{ padding: 0; }
+	select {
+		min-width: 100px;
+	}
+
+	select[multiple] {
+		padding: 0;
+	}
 
 	summary {
 		padding: var(--pad);
-		position: sticky;
-		top: 0;
-		z-index: 1;
 	}
 
 	textarea
@@ -268,12 +291,13 @@ body {
   }
 
 	.nofrills {
-		padding: 0 2px;
+		padding: 5px;
+		min-height: unset;
 	}
 
 	.sticky {
 		position: sticky;
-		top: var(--min);
+		top: 0;
 	}
 
 	#instructions {
@@ -285,15 +309,9 @@ body {
 
 	.flex {
 		align-items: center;
+		column-gap: var(--gap);
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--gap);
-		justify-content: space-around;
-		row-gap: 1rem;
-	}
-
-	.f300 {
-		flex-basis: 300px;
 	}
 
 	.flex1
@@ -302,11 +320,28 @@ body {
 	.flex2
 	{ flex: 2; }
 
+	.flex100
+	{ flex-basis: 100%; }
+
+	.flex50
+	{ flex-basis: 50%; }
+
+	.flex30
+	{ flex-basis: 30%; }
+
+	.flex25
+	{ flex-basis: 25%; }
+
+	.flex20
+	{ flex-basis: 20%; }
+
+	.flex16
+	{ flex-basis: 16%; }
+
 	.column
 	{ flex-direction: column; }
 
-	.row
-	{ flex-direction: row; }
+	.row { flex-direction: row; }
 
 	.row-reverse
 	{ flex-direction: row-reverse; }
@@ -314,35 +349,39 @@ body {
 	.center
 	{ justify-content: center; }
 
-	.vcenter
-	{ align-items: center; }
-
+	.vcenter,
+	.middle
 	.column.center
 	{ align-items: center; }
 
 	.end
-	{ justify-content: end; }
+	{ justify-content: flex-end; }
 
-	.vend
-	{ align-items: flex-end; }
-
+	.vend,
+	.bottom,
 	.column.end
-	{ align-items: end; }
+	{ align-items: flex-end; }
 
 	.start
 	{ justify-content: start; }
 
-	.vstart
+	.top,
+	.vstart,
+	.column.start
 	{ align-items: flex-start; }
+
+	.column.vstart,
+	.column.top
+	{ justify-content: flex-start; }
 
 	.stretch
 	{ align-items: stretch; }
 
-	.column.start
-	{ align-items: start; }
-
 	.space-between
 	{ justify-content: space-between; }
+
+	.space-around
+	{ justify-content: space-around; }
 
 	.gap0
 	{ gap: 0; }

@@ -5,7 +5,7 @@
   "type": "module",
   "main": "a-code.js",
   "scripts": {
-    "dev": "browser-sync start --server --files \"src/*.*\"",
+    "dev": "vite",
     "test": "tests/tests.js",
     "build": "rollup -c"
   },
@@ -13,7 +13,7 @@
   "license": "GPL",
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "browser-sync": "^3.0.3",
-    "rollup": "^4.30.1"
+    "rollup": "^4.30.1",
+    "vite": "^6.4.1"
   }
 }

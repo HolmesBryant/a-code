@@ -1,0 +1,45 @@
+a-markdown {
+  background: var(--bg2-color);
+	display: block;
+  opacity: 1;
+  padding: 1rem;
+  transition: opacity 0.5s;
+  --cell-max-width: 100px;
+
+  &:empty {
+  	opacity: 0;
+  }
+
+  & code,
+  & pre {
+  	border-radius: 5px;
+		font-family: "Courier New", ui-monospace;
+  }
+
+  & pre {
+  	background: hsl(0, 0%, 10%);
+  	color:  white;
+  	overflow-x: auto;
+  	padding: 10px;
+  }
+
+	& table {
+	  border-collapse: collapse;
+	  width: 100%;
+	}
+
+	& th, td {
+	  border: 1px solid var(--border-color);
+	  padding: var(--pad);
+	  overflow-x: auto;
+	  max-width: var(--cell-max-width);
+	}
+
+	& .error { color: darkred; }
+}
+
+@media (min-width: 640px) {
+	a-markdown {
+	  --cell-max-width:  360px;
+	}
+}

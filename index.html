@@ -4,6 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>A-Code Web Component</title>
+
 	<script type="module" src="extra/a-bind.min.js"></script>
 
 	<script type="module" src="dist/a-code.min.js"></script>
@@ -16,511 +17,883 @@
 	<link rel="stylesheet" href="extra/styles.css">
 	<link rel="stylesheet" href="dist/a-code.css">
 	<link rel="stylesheet" href="extra/a-tabset.css">
-
-	<script>
-		if (!window.CSS.highlights) alert ('This browser does not yet support the CSS Custom Highlight API')
-	</script>
+	<link rel="stylesheet" href="extra/a-markdown.css">
 </head>
 <body>
 	<h1>A-Code Web Component</h1>
 	<p>A custom element for displaying code snippets with consistent formatting and optional highlighting:
 		<a href="https://github.com/HolmesBryant/a-code">Github Repo</a> |
-		<a href="tests.html">tests</a>
+		<a href="tests/index.html" target="_blank">tests</a>
 	</p>
 
-	<details>
-	<summary>README</summary>
-		<a-markdown file="README.md"></a-markdown>
+	<details id="readme">
+		<summary>README</summary>
+		<a-markdown
+      ghCodeBlocks
+      ghCompatibleHeaderId
+      ghMentions
+      tables
+      file="README.md"
+      ></a-markdown>
 	</details>
 
 	<h2>Demo</h2>
 
-	<section id="demo">
-		<a-tabset active="1">
-			<strong slot="title">Javascript</strong>
-			<article slot="content">
-				<section id="js-demo-form" class="flex">
-					<div class="flex column gap0">
+	<a-tabset active="1">
+		<!-- HTML -->
+		<strong slot="title">HTML</strong>
+		<section slot="content">
+			<a-bindgroup model="#html-code" class="flex">
+				<!-- indent -->
+				<div class="flex column">
+					<label for="html-demo-indent">
+						indent
+					</label>
 
-					<label for="js-demo-indent">indent</label>
-						<a-bind
-							model="#javascript-code"
-							property="indent">
-							<input id="js-demo-indent" list="js-demo-indents">
-						</a-bind>
-
-						<datalist id="js-demo-indents">
+					<a-bind
+						property="indent">
+						<select id="html-demo-indent">
 							<option>1</option>
 							<option>2</option>
 							<option>3</option>
 							<option>4</option>
-							<option>1rem</option>
-							<option>2rem</option>
-							<option>3rem</option>
-							<option>4rem</option>
-							<option>1px</option>
-							<option>2px</option>
-							<option>3px</option>
-							<option>4px</option>
-						</datalist>
-					</div>
+						</select>
+					</a-bind>
+				</div>
 
-					<div class="flex column gap0">
-					<label for="demo-highlight">highlight</label>
-						<a-bind model="#javascript-code" property="highlight">
-							<select id="demo-highlight">
-								<option>false</option>
-								<option>javascript</option>
-								<option>html</option>
-							</select>
-						</a-bind>
-					</div>
+				<!-- highlight -->
+				<div class="flex column">
+					<label for="html-demo-highlight">
+						highlight
+					</label>
 
-					<div class="flex column gap0">
-					<label for="demo-palette">palette</label>
+					<a-bind property="highlight">
+						<select id="html-demo-highlight">
+							<option>false</option>
+							<option>html</option>
+							<option>javascript</option>
+							<option>python</option>
+							<option>php</option>
+						</select>
+					</a-bind>
+				</div>
 
-					<abind
-						model="#javascript-code"
-						property="palette">
-						<output>...</output>
-					</abind>
+				<!-- palette -->
+				<div class="flex column">
+					<label for="html-demo-palette">
+						palette
+					</label>
 
-						<a-bind model="#javascript-code" property="palette">
-							<select id="demo-palette">
-								<option value="null">Default Palette</option>
-								<option
-									value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
-									Custom Palette
-								</option>
-							</select>
-						</a-bind>
-					</div>
+					<a-bind property="palette">
+						<select id="html-demo-palette">
+							<option value="">Default Palette</option>
+							<option
+								value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
+								Custom Palette
+							</option>
+						</select>
+					</a-bind>
+				</div>
 
-					<fieldset class="flex">
-					<legend>line-numbers</legend>
-						<div class="flex column gap0">
-							<label for="js-line-numbers-true">true</label>
+				<!-- wrap -->
+				<div class="flex column">
+					<label for="html-demo-wrap">
+						wrap
+					</label>
 
-							<a-bind model="#javascript-code" property="lineNumbers">
-								<input
-									type="radio"
-									value="true"
-									name="js-line-numbers"
-									id="js-line-numbers-true">
-							</a-bind>
-						</div>
+					<a-bind property="wrap">
+						<select id="html-demo-wrap">
+							<option>normal</option>
+							<option>pre</option>
+							<option>pre-wrap</option>
+							<option>pre-line</option>
+							<option>wrap</option>
+							<option>collapse</option>
+							<option>preserve nowrap</option>
+						</select>
+					</a-bind>
+				</div>
 
-						<div class="flex column gap0">
-							<label for="js-line-numbers-false">false</label>
+				<!-- inline -->
+				<div class="flex column">
+					<label for="html-demo-inline">
+						inline
+					</label>
 
-							<a-bind model="#javascript-code" property="lineNumbers">
-								<input
-									type="radio"
-									value="false"
-									name="js-line-numbers"
-									id="js-line-numbers-false">
-							</a-bind>
-						</div>
-					</fieldset>
+					<a-bind property="inline">
 
-					<div class="flex column gap0">
-					<label for="js-demo-inline">inline</label>
-						<a-bind model="#javascript-code" property="inline">
-						<input
-							type="checkbox"
-							value="true"
-							id="js-demo-inline">
-						</a-bind>
-					</div>
-				</section>
-
-				<a-code
-					id="javascript-code"
-					class="demo"
-					line-numbers
-					highlight="javascript">
-					#! hashbang
-
-					/**
-					 * @function foo
-					 * @description Does foo things
-					 *
-					 * @param {HTMLElement}	element An HTML element
-					 */
-					function foo (element) {
-						let bar, output = '';
-						const baz = "boom";
-						const result = document.querySelector('#result');
-						const bing = ["one", "123.456", -12.5, +100, "3px", 2^3, 2.5e3, 1.2E-3, 1**2, 0x123, 0xFAF];
-
-						bar = 2 * 3;
-
-						// This is a comment
-						/*Another comment*/
-						for (const child of element.children) {
-							for (const attr of child.attributes) {
-								output += `
-									${attr.name} -> ${attr.value}\n
-									<p id="foo">Some text</p>
-								`;
-							}
-						}
-
-						someElement.addEventListener (
-							'click',
-							event => { console.log(event); }
-						);
-
-						const func = (arg) => arg.toLowerCase();
-
-						return output;
-					}
-
-					class MyClass {
-						@foo
-						sayHello(name) {
-							return `Hello, ${name}!`;
-						}
-					}
-				</wijt-code>
-			</article>
-
-			<strong slot="title">HTML</strong>
-			<article slot="content">
-				<section id="html-demo-form" class="flex">
-					<div class="flex column gap0">
-					<label for="html-demo-indent">indent</label>
-						<a-bind
-							model="#html-code"
-							property="indent">
-							<input id="html-demo-indent" list="html-demo-indents">
-						</a-bind>
-
-						<datalist id="html-demo-indents">
-							<option>1</option>
-							<option>2</option>
-							<option>3</option>
-							<option>4</option>
-							<option>1rem</option>
-							<option>2rem</option>
-							<option>3rem</option>
-							<option>4rem</option>
-							<option>1px</option>
-							<option>2px</option>
-							<option>3px</option>
-							<option>4px</option>
-						</datalist>
-					</div>
-
-					<div class="flex column gap0">
-					<label for="html-demo-highlight">highlight</label>
-						<a-bind model="#html-code" property="highlight">
-							<select id="html-demo-highlight">
-								<option value="">Default (html)</option>
-								<option>false</option>
-								<option>javascript</option>
-								<option>html</option>
-							</select>
-						</a-bind>
-					</div>
-
-					<div class="flex column gap0">
-					<label for="html-demo-palette">palette</label>
-						<a-bind model="#html-code" property="palette">
-							<select id="html-demo-palette">
-								<option value="default">Default Palette</option>
-								<option
-									value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
-									Custom Palette
-								</option>
-							</select>
-						</a-bind>
-					</div>
-
-					<fieldset class="flex">
-					<legend>line-numbers</legend>
-						<div class="flex column gap0">
-							<label for="html-line-numbers-true">true</label>
-
-							<a-bind model="#html-code" property="lineNumbers">
-								<input
-									type="radio"
-									value="true"
-									name="html-line-numbers"
-									id="html-line-numbers-true">
-							</a-bind>
-						</div>
-
-						<div class="flex column gap0">
-							<label for="html-line-numbers-false">false</label>
-
-							<a-bind model="#html-code" property="lineNumbers">
-								<input
-									type="radio"
-									value="false"
-									name="html-line-numbers"
-									id="html-line-numbers-false">
-							</a-bind>
-						</div>
-					</fieldset>
-
-					<div class="flex column gap0">
-					<label for="html-demo-inline">inline</label>
-						<a-bind model="#html-code" property="inline">
 						<input
 							type="checkbox"
 							value="true"
 							id="html-demo-inline">
+					</a-bind>
+				</div>
+
+				<!-- line-numbers -->
+				<fieldset class="flex center">
+					<legend>line-numbers</legend>
+
+					<div class="flex column">
+						<label for="html-line-numbers-true">
+							true
+						</label>
+
+						<a-bind property="lineNumbers">
+							<input
+								type="radio"
+								value="true"
+								name="html-line-numbers"
+								id="html-line-numbers-true">
 						</a-bind>
 					</div>
-				</section>
 
-				<a-code
-					highlight
-					line-numbers
-					id="html-code"
-					class="demo"
-					>
-					<textarea>
-						<style>
-							/**** A Comment ****/
+					<div class="flex column">
+						<label for="html-line-numbers-false">
+							false
+						</label>
 
-							/* Another
-								Comment */
-
-							body {
-								--var1: rgb(250, 250, 250);
-								--var2: #f2f2f2;
-								--var3: white;
-								--argument: hsl(32, 93%, 66%);
-
-							  background: var(--var1);
-								font-family: sans-serif;
-								font-size: 16px;
-							  height: 100%;
-							  letter-spacing: .1rem;
-								padding: 1rem;
-							}
-
-							@media (prefers-color-scheme: dark) {
-								body {
-							    --var1: rgb(20, 20, 20);
-								}
-
-								* { padding: 0; }
-							}
-
-							@media (max-width: 300px) {
-								* { padding: 0; }
-							}
-
-								section,
-							  summary
-							  { background-color: var(--bg2) }
-
-							  summary:hover,
-							  details[open] > summary
-							  {
-							  	background-image: linear-gradient(
-							  		to bottom,
-							  		#008000,
-							  		rgb(0, 128, 0) 0 10%,
-							  		rgba(0, 128, 0, 0.5) 10% 20%,
-							  		hsl(120, 100%, 25.098%) 30%,
-							  		hwb(120 0% 49.804%),
-							  		color(a98-rgb 0.28137 0.49802 0.11675),
-							  		lab(46.278 -47.552 48.586),
-							  		#333 50%
-							  	),
-							  	linear-gradient(336deg, rgba(0,0,255,.8), rgba(0,0,255,0) 70.71%);
-								}
-
-								section[data-fomodel="bar"] {
-									margin: 0 auto 1rem auto;
-									padding: 1rem;
-								}
-
-								div::before{
-									content: "*";
-								}
-
-								div::after {
-									content: "";
-								}
-						</style>
-						<!-- Comment -->
-						<!--A
-							multi-line
-							comment-->
-
-						<img src="false" onerror="alert('foo')">
-
-						<p class="some-class">Some Text</p>
-						<div>
-							<label for="test-number" data-fomodel="" id=foo>Number</label>
-
+						<a-bind property="lineNumbers">
 							<input
-								name="input"
-								value="2"
-								id="test-number"
-								list="test-numbers"
-								oninput="doSomething(event)">
+								type="radio"
+								value="false"
+								name="html-line-numbers"
+								id="html-line-numbers-false">
+						</a-bind>
+					</div>
+				</fieldset>
+			</a-bindgroup>
 
-							<datalist id="test-numbers">
-								<option>1</option>
-								<option>"123.456"</option>
-								<option>-12.5</option>
-								<option>+100</option>
-								<option>3px</option>
-								<option>2.5e3</option>
-								<option>1.2e-3</option>
-								<option>0x123</option>
-								<option>9.876E9</option>
-								<option>0xFAF</option>
-							</datalist>
-						</div>
-
-						<a-code highlight="html">
-							<article>
-								<h1>A Title</h1>
-								<p class="foo">Some text</p>
-							</article>
-						</a-code>
-					</textarea>
-				</a-code>
-			</article>
-		</a-tabset>
-	</section>
-
-	<h2>Examples</h2>
-
-	<section id="examples" class="flex stretch center">
-		<div class="card">
-			<h3>Inline Code</h3>
-			<a-code>
+			<a-code
+				id="html-code"
+				highlight
+				line-numbers>
 				<textarea>
-					<a-code inline>...</a-code >
+					<!DOCTYPE html>
+					<html lang="en">
+						<head>
+							<meta charset="UTF-8">
+							<title>Syntax Highlighter Test</title>
+
+							<style>
+								/* --- KEYWORDS & VARIABLES --- */
+								@import url("fonts.css");
+
+								:root {
+									--primary-color: #333;
+									--accent-color: #ff0055;
+									--gap-size: 1.5rem;
+									--transition-speed: 300ms;
+								}
+
+								/* --- SELECTORS & OPERATORS --- */
+								/* Tests: *, >, +, ~, :, ::, [] */
+								* { box-sizing: border-box; }
+
+								body > main {
+									margin: 0;
+									padding: 0;
+								}
+
+								h1 + p
+								{ margin-top: 0.5em; } /* Float without leading digit check */
+
+								/* Attribute selectors (Testing =, ^=, *=) */
+								a[href^="https"],
+								div[class*="box"] {
+									text-decoration: none;
+								}
+
+								/* --- PROPERTIES & NUMBERS --- */
+								.card {
+									display: block;
+									width: 100%;
+									z-index: 10;
+									opacity: .95;
+									line-height: 1.6;
+									transform: rotate(-45deg); /* Negative number & unit */
+									flex: 1 0 auto;            /* Multiple numbers */
+								}
+
+								/* --- STRINGS --- */
+								.card::before {
+									content: "Simple String";
+								}
+
+								.card::after {
+									/* Tests escaped quotes inside string */
+									content: 'It\'s a "mixed" quote test';
+									font-family: "Helvetica Neue", sans-serif;
+								}
+
+								/* --- FUNCTIONS & ARGUMENTS --- */
+								.dynamic-box {
+									/* Tests function regex and argument grouping */
+									color: rgba(255, 99, 71, 0.8);
+									background-image: url('background.jpg');
+
+									/* Nesting stress test (Regex often struggles here) */
+									width: calc(100% - 20px);
+									padding: var(--gap-size);
+								}
+
+								/* --- ANIMATIONS (At-Rules) --- */
+								@keyframes slideIn {
+									0% {
+										transform: translateY(-100px);
+										opacity: 0;
+									}
+									100% {
+										transform: translateY(0);
+										opacity: 1;
+									}
+								}
+
+								/* --- MEDIA QUERIES --- */
+								@media only screen and (max-width: 768px) {
+									.card {
+										width: 50%;
+										background-color: #fff;
+									}
+								}
+							</style>
+						</head>
+
+						<body>
+							<!-- --- HTML TAGS --- -->
+							<header id="top">
+								<h1>Welcome to A-Code</h1>
+								<nav>
+									<!-- Self-closing tags and attributes -->
+									<input type="text" placeholder="Search..." disabled />
+									<br />
+									<img src="logo.png" alt="Logo" />
+								</nav>
+							</header>
+
+							<main>
+								<section class="content">
+									<p>This is a paragraph with <strong>bold</strong> text.</p>
+								</section>
+							</main>
+						</body>
+					</html>
 				</textarea>
 			</a-code>
+		</section>
 
-			<p>Some text <a-code inline> function foo() { ... }</a-code> some more text.</p>
-		</div>
+		<!-- JAVASCRIPT -->
+		<strong slot="title">Javascript</strong>
+		<section slot="content">
+			<a-bindgroup model="#javascript-code" class="flex">
 
-		<div class="card f300">
-			<h3>Indent (integer)</h3>
-			<a-code indent="2">
-				<textarea>
-					<a-code indent="2" >
-						<article>
-							<h1>A Title</h1>
-							<p>Some text</p>
-						</article>
-					</a-code>
-				</textarea>
-			</a-code>
-		</div>
+				<!-- indent -->
+				<div class="flex column">
+					<label for="javascript-demo-indent">
+						indent
+					</label>
 
-		<div class="card f300">
-			<h3>Indent (css length)</h3>
-			<a-code html indent=".5rem">
-				<textarea>
-					<a-code indent=".5rem" >
-						<article>
-							<h1>A Title</h1>
-							<p>Some text</p>
-						</article>
-					</a-code>
-				</textarea>
-			</a-code>
-		</div>
+					<a-bind
+						property="indent">
+						<select id="javascript-demo-indent">
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
+							<option>4</option>
+						</select>
+					</a-bind>
+				</div>
 
-		<div class="card f300">
-			<h3>Add line numbers</h3>
-			<a-code line-numbers>
-				<textarea>
-					<a-code line-numbers>
-						<article>
-							<h1>A Title</h1>
-							<p>Some text</p>
-						</article>
-					</a-code>
-				</textarea>
-			</a-code>
-		</div>
+				<!-- highlight -->
+				<div class="flex column">
+					<label for="javascript-demo-highlight">
+						highlight
+					</label>
 
-		<div class="card f300">
-		<h3>Highlight HTML/CSS</h3>
-			<a-code id="editable" highlight>
-				<textarea>
-					<a-code highlight>
-						<article>
-							<h1>A Title</h1>
-							<p class="foo">Some text</p>
-						</article>
-					</a-code>
-				</textarea>
-			</a-code>
-		</div>
+					<a-bind property="highlight">
+						<select id="javascript-demo-highlight">
+							<option>false</option>
+							<option>html</option>
+							<option>javascript</option>
+							<option>python</option>
+							<option>php</option>
+						</select>
+					</a-bind>
+				</div>
 
-		<div class="card f300">
-		<h3>Highlight using Keyword</h3>
-			<a-code id="editable" highlight="javascript" edit>
-				<textarea>
-					<a-code highlight="javascript">
-						function foo(bar) {
-							return bar;
+				<!-- palette -->
+				<div class="flex column">
+					<label for="javascript-demo-palette">
+						palette
+					</label>
+
+					<a-bind property="palette">
+						<select id="javascript-demo-palette">
+							<option value="">Default Palette</option>
+							<option
+								value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
+								Custom Palette
+							</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- wrap -->
+				<div class="flex column">
+					<label for="javascript-demo-wrap">
+						wrap
+					</label>
+
+					<a-bind property="wrap">
+						<select id="javascript-demo-wrap">
+							<option>normal</option>
+							<option>pre</option>
+							<option>pre-wrap</option>
+							<option>pre-line</option>
+							<option>wrap</option>
+							<option>collapse</option>
+							<option>preserve nowrap</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- inline -->
+				<div class="flex column">
+					<label for="javascript-demo-inline">
+						inline
+					</label>
+
+					<a-bind property="inline">
+
+						<input
+							type="checkbox"
+							value="true"
+							id="javascript-demo-inline">
+					</a-bind>
+				</div>
+
+				<!-- line-numbers -->
+				<fieldset class="flex center">
+					<legend>line-numbers</legend>
+
+					<div class="flex column">
+						<label for="javascript-line-numbers-true">
+							true
+						</label>
+
+						<a-bind property="lineNumbers">
+							<input
+								type="radio"
+								value="true"
+								name="javascript-line-numbers"
+								id="javascript-line-numbers-true">
+						</a-bind>
+					</div>
+
+					<div class="flex column">
+						<label for="javascript-line-numbers-false">
+							false
+						</label>
+
+						<a-bind property="lineNumbers">
+							<input
+								type="radio"
+								value="false"
+								name="javascript-line-numbers"
+								id="javascript-line-numbers-false">
+						</a-bind>
+					</div>
+				</fieldset>
+			</a-bindgroup>
+
+			<a-code
+				id="javascript-code"
+				class="demo"
+				line-numbers
+				highlight="javascript">
+				#! hashbang
+
+				/**
+				 * @function foo
+				 * @description Does foo things
+				 *
+				 * @param {HTMLElement}	element An HTML element
+				 */
+				function foo (element) {
+					let bar, output = '';
+					const baz = "boom";
+					const result = document.querySelector('#result');
+					const bing = ["one", "123.456", -12.5, +100, "3px", 2^3, 2.5e3, 1.2E-3, 1**2, 0x123, 0xFAF];
+
+					bar = 2 * 3;
+
+					// This is a comment
+					/*Another comment*/
+					for (const child of element.children) {
+						for (const attr of child.attributes) {
+							output += `
+								${attr.name} -> ${attr.value}\n
+								<p id="foo">Some text</p>
+							`;
 						}
-					</a-code>
-				</textarea>
-			</a-code>
-		</div>
+					}
 
-		<div class="card">
-		<h3>Highlight Code using Url</h3>
-			<a-code highlight="./syntax.javascript.js">
+					someElement.addEventListener (
+						'click',
+						event => { console.log(event); }
+					);
+
+					const func = (arg) => arg.toLowerCase();
+
+					return output;
+				}
+
+				class MyClass {
+					@foo
+					sayHello(name) {
+						return `Hello, ${name}!`;
+					}
+				}
+			</a-code>
+		</section>
+
+		<!-- PYTHON -->
+		<strong slot="title">Python</strong>
+		<section slot="content">
+			<a-bindgroup model="#python-code" class="flex">
+				<!-- indent -->
+				<div class="flex column">
+					<label for="python-demo-indent">
+						indent
+					</label>
+
+					<a-bind
+						property="indent">
+						<select id="python-demo-indent">
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
+							<option>4</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- highlight -->
+				<div class="flex column">
+					<label for="python-demo-highlight">
+						highlight
+					</label>
+
+					<a-bind property="highlight">
+						<select id="python-demo-highlight">
+							<option>false</option>
+							<option>html</option>
+							<option>javascript</option>
+							<option>python</option>
+							<option>php</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- palette -->
+				<div class="flex column">
+					<label for="python-demo-palette">
+						palette
+					</label>
+
+					<a-bind property="palette">
+						<select id="python-demo-palette">
+							<option value="">Default Palette</option>
+							<option
+								value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
+								Custom Palette
+							</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- wrap -->
+				<div class="flex column">
+					<label for="python-demo-wrap">
+						wrap
+					</label>
+
+					<a-bind property="wrap">
+						<select id="python-demo-wrap">
+							<option>normal</option>
+							<option>pre</option>
+							<option>pre-wrap</option>
+							<option>pre-line</option>
+							<option>wrap</option>
+							<option>collapse</option>
+							<option>preserve nowrap</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- inline -->
+				<div class="flex column">
+					<label for="python-demo-inline">
+						inline
+					</label>
+
+					<a-bind property="inline">
+
+						<input
+							type="checkbox"
+							value="true"
+							id="python-demo-inline">
+					</a-bind>
+				</div>
+
+				<!-- line-numbers -->
+				<fieldset class="flex center">
+					<legend>line-numbers</legend>
+
+					<div class="flex column">
+						<label for="python-line-numbers-true">
+							true
+						</label>
+
+						<a-bind property="lineNumbers">
+							<input
+								type="radio"
+								value="true"
+								name="python-line-numbers"
+								id="python-line-numbers-true">
+						</a-bind>
+					</div>
+
+					<div class="flex column">
+						<label for="python-line-numbers-false">
+							false
+						</label>
+
+						<a-bind property="lineNumbers">
+							<input
+								type="radio"
+								value="false"
+								name="python-line-numbers"
+								id="python-line-numbers-false">
+						</a-bind>
+					</div>
+				</fieldset>
+			</a-bindgroup>
+
+			<a-code
+				id="python-code"
+				class="demo"
+				highlight="python"
+				line-numbers>
+				#!/usr/bin/env python3
+				# This is a comment to test the comment regex
+
+				import math
+				import asyncio
+				from typing import List, Dict, Optional, Union
+
+				# Test 'tag' (decorators) and 'keyword' (class)
+				@property
+				@staticmethod
+				def decorator_test():
+					pass
+
+				class SyntaxTester:
+			    """
+			    A class to test the 'string' regex for triple quotes.
+			    It handles: "double", 'single', and mixed quotes.
+			    """
+
+			    # Test 'variable' (danders like __init__) and 'argument' parsing logic
+			    # This specific signature tests the depth tracking for (), [], {}, and quote skipping
+			    def __init__(
+		        self,                                     # variable: self
+		        param_a: int,                             # Simple type hint
+		        param_b: str = "default with , comma",    # String with comma (should not break arg parsing)
+		        param_c: List[int] = [1, 2, 3],           # Nested brackets default
+		        param_d: Dict[str, int] = {'x': 1},       # Nested braces default
+		        *args,                                    # Star args
+		        **kwargs                                  # Double star kwargs
+			    ) -> None:
+			    	self.value = param_a
+
+			    # Test 'variable' (cls) and 'keyword' (async, await)
+			    @classmethod
+			    async def async_method(cls, delay: float = 1.5):
+		        # Test 'keyword' (await) and 'function' call
+		        await asyncio.sleep(delay)
+		        return cls
+
+			    # Test 'operator' and 'number' variants
+			    def math_operations(self):
+		        # Integers, Floats, Scientific, Hex, Octal, Binary, Complex
+		        integer = 42
+		        floating = 3.14159
+		        scientific = 1.5e-10
+		        hex_num = 0xDEADBEEF
+		        oct_num = 0o755
+		        bin_num = 0b101010
+		        complex_num = 3j + 1.5
+
+		        # Operators: arithmetic, bitwise, comparison, assignment
+		        result = (integer + hex_num) // 2
+		        power = integer ** 2
+		        bitwise = (bin_num | 0b1) & ~0b0
+		        comparison = (10 >= 5) and (3 != 4) or (variable is not None)
+
+		        return result
+
+			    def string_formatting(self):
+		        # Test 'string' variants
+		        normal = "Double quotes"
+		        single = 'Single quotes'
+		        f_string = f"Interpolated: {self.value}"
+		        r_string = r"Raw string \n no escape"
+		        b_string = b"Bytes object"
+
+		        # Test 'keyword' (control flow)
+		        if True:
+	            try:
+	              print(f_string) # 'function' call
+	            except Exception as e:
+	              pass
+	            finally:
+	              return False
+
+				# Function calls to test 'function' regex (lookbehind assertions)
+				instance = SyntaxTester(10, param_c=[9, 8])
+				instance.math_operations()
+			</a-code>
+		</section>
+
+		<!-- PHP -->
+		<strong slot="title">PHP</strong>
+		<section slot="content">
+			<a-bindgroup model="#php-code" class="flex">
+				<!-- indent -->
+				<div class="flex column">
+					<label for="php-demo-indent">
+						indent
+					</label>
+
+					<a-bind
+						property="indent">
+						<select id="php-demo-indent">
+							<option>1</option>
+							<option>2</option>
+							<option>3</option>
+							<option>4</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- highlight -->
+				<div class="flex column">
+					<label for="php-demo-highlight">
+						highlight
+					</label>
+
+					<a-bind property="highlight">
+						<select id="php-demo-highlight">
+							<option>false</option>
+							<option>html</option>
+							<option>javascript</option>
+							<option>python</option>
+							<option>php</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- palette -->
+				<div class="flex column">
+					<label for="php-demo-palette">
+						palette
+					</label>
+
+					<a-bind property="palette">
+						<select id="php-demo-palette">
+							<option value="">Default Palette</option>
+							<option
+								value='[["argument", "orange"], ["comment", "gray"], ["function", "brown"], ["keyword", "olive"], ["number", "darksalmon"], ["operator", "darkred"], ["string", "royalblue"], ["tag", "olive"]]'>
+								Custom Palette
+							</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- wrap -->
+				<div class="flex column">
+					<label for="php-demo-wrap">
+						wrap
+					</label>
+
+					<a-bind property="wrap">
+						<select id="php-demo-wrap">
+							<option>normal</option>
+							<option>pre</option>
+							<option>pre-wrap</option>
+							<option>pre-line</option>
+							<option>wrap</option>
+							<option>collapse</option>
+							<option>preserve nowrap</option>
+						</select>
+					</a-bind>
+				</div>
+
+				<!-- inline -->
+				<div class="flex column">
+					<label for="php-demo-inline">
+						inline
+					</label>
+
+					<a-bind property="inline">
+
+						<input
+							type="checkbox"
+							value="true"
+							id="php-demo-inline">
+					</a-bind>
+				</div>
+
+				<!-- line-numbers -->
+				<fieldset class="flex center">
+					<legend>line-numbers</legend>
+
+					<div class="flex column">
+						<label for="php-line-numbers-true">
+							true
+						</label>
+
+						<a-bind property="lineNumbers">
+							<input
+								type="radio"
+								value="true"
+								name="php-line-numbers"
+								id="php-line-numbers-true">
+						</a-bind>
+					</div>
+
+					<div class="flex column">
+						<label for="php-line-numbers-false">
+							false
+						</label>
+
+						<a-bind property="lineNumbers">
+							<input
+								type="radio"
+								value="false"
+								name="php-line-numbers"
+								id="php-line-numbers-false">
+						</a-bind>
+					</div>
+				</fieldset>
+			</a-bindgroup>
+
+			<a-code
+				id="php-code"
+				highlight="php"
+				line-numbers>
 				<textarea>
-					<a-code
-						highlight="./syntax.javascript.js">
-						console.log('foo');
-					</a-code>
+				<?php
+				// Comments & Tags
+				# Shell-style comment
+				/* Multi-line comment
+				   spanning lines */
+				$html_snippet = "<div>" . $content . "</div>";
+				?>
+
+				<?= "Short tag output" ?>
+
+				<?php
+				// Numbers (Hex, Binary, Octal, Float)
+				$anInteger = 1234;
+				$aFloat   = 1.234e-5;
+				$aBinary  = 0b101101;
+				$aHex     = 0x1A2F;
+				$anOctal   = 0o755;
+
+				// Strings & Concatenation
+				$double = "Double quoted with \"escaped\" chars";
+				$single = 'Single quoted string';
+				$exec   = `ls -la`; // Backticks
+				$concat = $double . ' - ' . $single;
+
+				// Operators & Logic
+				$check = ($a === $b) || ($c !== $d) && !false;
+				$null_coalesce = $user['name'] ?? 'Guest';
+				$spaceship     = $a <=> $b;
+				$bitwise       = $mask & (1 << 4) | ~0;
+				$instance      = $obj instanceof MyClass;
+
+				// Control Flow Keywords
+				if ($check) {
+					echo "True";
+				} elseif ($null_coalesce) {
+					require_once 'config.php';
+				} else {
+					die("Fatal Error");
+				}
+
+				$result = match ($status) {
+					200, 300 => 'success',
+					400, 500 => 'error',
+					default => 'unknown',
+				};
+
+				try {
+					throw new Exception("Error");
+				} catch (Exception $e) {
+					return null;
+				} finally {
+					unset($check);
+				}
+
+				/**
+				 * Complex Function Arguments
+				 * - Type hints, references (&), variadics (...)
+				 * - Default values containing quotes, brackets, and parentheses
+				 */
+				function complex_parser_test(
+					int $id,
+					?string $name = "Default string with ) parenthesis",
+					array $options = ['nested' => [1, 2], "key" => "val"],
+					float &$reference,
+					MyClass $obj = null,
+					...$variadicItems
+					): void {
+
+					// Function call inside
+					$result = array_map(function($n) {
+						return $n * 2;
+					}, $options);
+				}
+
+				// Classes, Scope, and Arrow Functions
+				namespace App\Tests;
+
+				abstract class Calculator extends Base implements MathInterface {
+					public const PI = 3.14;
+					private static $count = 0;
+					protected readonly string $version;
+
+					public function __construct(string $ver) {
+						$this->version = $ver;
+						self::$count++;
+					}
+
+					public static function add(int|float $a, int|float $b): float {
+						// Arrow function
+						$fn = fn($x) => $x * self::PI;
+						return $fn($a + $b);
+					}
+				}
+
+				// Method Chaining & Properties
+				$calc = new Calculator('1.0');
+				$val  = $calc->add(5, 10);
+				$stat = Calculator::PI;
 				</textarea>
 			</a-code>
-		</div>
-
-		<div class="card">
-			<h3>
-				Prevent code execution: Wrap code in textarea
-			</h3>
-
-			<a-code>
-				<textarea>
-					<a-code>
-						&lt;textarea>
-							<img src="false" onerror="alert('fubar!')">
-						&lt;/textarea>
-					</a-code>
-				</textarea>
-			</a-code>
-		</div>
-
-		<div class="card">
-			<h3>
-				Nested Textareas:
-				<small>escape slashes in nested closing tags with a backslash</small>
-			</h3>
-			<a-code>
-				<textarea>
-					<a-code>
-						&lt;textarea>
-							<img src="false" onerror="alert('fubar!')">
-							<textarea>
-								...
-							<\\/textarea>
-						&lt;/textarea>
-					</a-code>
-				</textarea>
-			</a-code>
-		</div>
-	</section>
+		</section>
+	</a-tabset>
 </body>
 </html>

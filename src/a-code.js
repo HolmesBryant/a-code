@@ -1,97 +1,110 @@
 /**
- * @file
+ * @file a-code.js
  * @author Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
  * @version 2.0.1
  */
 
 /**
-  * A custom element that provides syntax highlighting for code snippets.
-  * It uses the CSS Custom Highlight API for efficient highlighting.
-  *
-  * @class ACode
-  * @extends {HTMLElement}
-  * @property {boolean} highlight - The syntax language to highlight. Defaults to 'html'.
-  * @property {boolean} inline - Renders the element as an inline-block.
-  * @property {number} indent - The tab size for indentation.
-  * @property {boolean} lineNumbers - Toggles the display of line numbers.
-  * @property {string} palette - The color palette to use for highlighting.
-  */
-export class ACode extends HTMLElement {
-  // Attributes
+ * A custom element that normalizes indentation and (optionally) provides syntax highlighting for code snippets.
+ *
+ * @class ACode
+ * @extends {HTMLElement}
+ */
+export default class ACode extends HTMLElement {
+  // -- Attributes --
 
-  /** @private */
+  /**
+   * @private
+   * @type {boolean}
+   */
   #edit = false;
 
-  /** @private */
+  /**
+   * @private
+   * @type {string|boolean}
+   */
   #highlight = false;
 
-  /** @private */
+  /**
+   * @private
+   * @type {boolean}
+   */
   #inline = false;
 
-  /** @private */
-  #indent = 4;
+  /**
+   * @private
+   * @type {number}
+   */
+  #indent = 2;
 
-  /** @private */
+  /**
+   * @private
+   * @type {boolean}
+   */
   #lineNumbers = false;
 
-  /** @private */
+  /**
+   * @private
+   * @type {Object|null}
+   */
   #palette = null;
-
-  /** @private */
-  #wrap = 'pre';
-
-  // Private
-
-  /** @private
-   * @type {AbortController | null}
-   */
-  #abortController;
-
-  /** @private
-   * @type {HTMLElement | null}
-   */
-  contentNode;
 
    /**
    * @private
-   * @type {string | null}
-   * @description Caches the last processed content to prevent infinite update loops.
+   * @type {string}
+   */
+  #wrap = 'pre';
+
+  // -- Private --
+
+  /**
+   * @private
+   * @type {AbortController}
+   */
+  #abortController;
+
+  /**
+   * @private
+   * @type {HTMLElement}
+   */
+  #contentNode;
+
+  /**
+   * @private
+   * @type {string|null}
    */
   #lastContent = null;
 
-  /** @private
-   * @type {number}
+  /**
+   * @private
+   * @type {HTMLElement}
    */
-  #lastMutationTime = Date.now();
+  #lineNumberElem;
 
-  /** @private
-   * @type {HTMLElement | null}
-   */
-  lineNumberElem;
-
-  /** @private
+  /**
+   * @private
    * @type {MutationObserver}
    */
   #observer;
 
-  /** @private
+  /**
+   * @private
    * @type {number}
    */
   #updateTimeout;
 
-  // Public
-
-  /** @type {Highlighter} */
-  highlighter;
-
-  /** @type {Object<string} */
-  defaults = {};
+  // -- Public --
 
   /**
-   * @static
-   * @type string[]
-   * @description A list of attributes to observe for changes.
+   * The highlighter instance used for syntax highlighting.
+   * @type {Highlighter}
+   */
+  highlighter;
+
+  /**
+   * Attributes to monitor for changes.
+   * @type {string[]}
    */
   static observedAttributes = [
     "highlight",
@@ -102,13 +115,16 @@ export class ACode extends HTMLElement {
     "wrap"
   ];
 
+  /**
+   * The HTML template for the shadow DOM.
+   * @type {HTMLTemplateElement}
+   */
   static template = document.createElement('template');
 
   static {
     this.template.innerHTML = `
     <style>
       :host {
-        --indent: 2;
         --line-number-color: gray;
         --wrap: pre;
         display: block;
@@ -118,7 +134,7 @@ export class ACode extends HTMLElement {
 
       :host([inline]) {
         display: inline-block;
-        padding: 0;
+        vertical-align: middle;
       }
 
       section {
@@ -128,90 +144,111 @@ export class ACode extends HTMLElement {
         width: 100%;
       }
 
+      :host([inline]) section {
+        display: block;
+      }
+
       #content {
         font-family: "Courier New", monospace;
         tab-size: var(--indent);
         white-space: var(--wrap);
         overflow: auto;
+        outline: none;
+        text-align: left;
       }
 
       #line-numbers {
         color: var(--line-number-color);
         font-family: "Courier New", monospace;
-        white-space: pre-line;
+        white-space: pre;
+        text-align: right;
+        user-select: none;
       }
     </style>
 
     <section part="section">
-      <div id="line-numbers" part="line-numbers"></div>
-      <div id="content" part="content"><slot></slot></div>
+      <pre id="line-numbers" part="line-numbers"></pre>
+      <pre id="content" part="content"><slot></slot></pre>
     </section>
   `;
   }
 
   /**
-   * @constructor
-   * @description Creates a new ACode instance and sets up its shadow DOM.
-   *
+   * constructor
    */
   constructor() {
-   super();
-   this.attachShadow({ mode: "open" });
+    super();
+    this.attachShadow({ mode: "open" });
   }
 
+  // --- Lifecycle ---
+
   /**
-   * Called when an observed attribute changes.
-   * @param {string} attr - The attribute name.
-   * @param {string | null} oldval - The old attribute value.
-   * @param {string | null} newval - The new attribute value.
+   * Called when one of the observed attributes changes.
+   *
+   * @param {string} attr - The name of the attribute that changed.
+   * @param {string} oldval - The previous value of the attribute.
+   * @param {string} newval - The new value of the attribute.
    */
   attributeChangedCallback(attr, oldval, newval) {
+    if (oldval === newval) return;
+
     switch (attr) {
       case "highlight":
-        this.#setHighlight(newval);
+        newval = (newval === 'false') ? false : (newval === null || newval === '') ? 'html' : newval;
+        this.#highlight = newval;
+        this.#highlightCode(newval);
         break;
       case "inline":
-        newval = newval !== null && newval !== 'false' && newval !== false;
+        newval = newval !== 'false' && newval !== null;
+        this.#inline = newval;
         this.#setInline(newval);
         break;
       case "indent":
-        this.style.setProperty("--indent", newval);
+        newval = parseFloat(newval);
         this.#indent = newval;
-        if (window.abind) abind.update(this, 'indent', newval);
+        this.style.setProperty("--indent", newval);
+        this.#notify('indent', newval);
         break;
       case "line-numbers":
+        newval = newval !== 'false' && newval !== null;
+        this.#lineNumbers = newval;
         this.#setLineNumbers(newval);
         break;
       case "palette":
         this.#palette = newval;
+        if(this.highlighter) this.highlighter.setPalette(newval);
+        this.#notify('palette', newval);
         break;
       case 'wrap':
         this.#wrap = newval;
         this.style.setProperty('--wrap', newval);
+        this.#notify('wrap', newval);
+        break;
     }
   }
 
   /**
-   * Called when the element is added to the document's DOM.
+   * Called when the element is added to the document.
+   * Initializes Shadow DOM, observers, and content.
    */
   connectedCallback() {
-    this.shadowRoot.append(ACode.template.content.cloneNode(true));
-    this.contentNode = this.shadowRoot.querySelector("#content");
-    this.lineNumberElem = this.shadowRoot.querySelector("#line-numbers");
+    if (!this.shadowRoot.hasChildNodes()) {
+        this.shadowRoot.append(ACode.template.content.cloneNode(true));
+    }
+
+    this.#contentNode = this.shadowRoot.querySelector("#content");
+    this.#lineNumberElem = this.shadowRoot.querySelector("#line-numbers");
     this.#abortController = new AbortController();
-    this.#observer = new MutationObserver( this.#debouncedUpdate.bind(this) );
-
+    this.#observer = new MutationObserver(this.#update.bind(this));
     const initialContent = this.#resetSpaces(this.#getContent());
-    this.textContent = initialContent;
-
-    // Cache initial content
     this.#lastContent = initialContent;
+    this.#contentNode.textContent = initialContent;
+    this.indent = this.#indent;
+    this.#setLineNumbers(this.#lineNumbers);
+    if (this.#highlight) this.#highlightCode();
 
-    if (this.lineNumbers) this.#addLineNumbers();
-    if (this.highlight) this.#highlightCode();
-    this.#setDefaults();
-
-    this.#observer.observe( this, {
+    this.#observer.observe(this, {
       childList: true,
       subtree: true,
       characterData: true
@@ -219,7 +256,8 @@ export class ACode extends HTMLElement {
   }
 
   /**
-   * Called when the element is removed from the DOM. Cleans up resources and removes event listeners.
+   * Called when the element is removed from the document.
+   * Cleans up observers, timers, and highlighter instances.
    */
   disconnectedCallback() {
     if (this.#abortController) {
@@ -235,28 +273,17 @@ export class ACode extends HTMLElement {
     this.#destroyHighlights();
     this.highlighter = null;
     this.#palette = null;
-
-    this.contentNode = null;
-    this.lineNumberElem = null;
+    this.#contentNode = null;
+    this.#lineNumberElem = null;
   }
 
-  /**
-   * Adds line numbers to the code block.
-   */
-  #addLineNumbers() {
-    if (!this.lineNumberElem) return;
-    const lines = this.textContent.split(/\r?\n/).length;
-    let html = "";
-    for (let i = 1; i <= lines; i++) {
-      html += `${i}\n`;
-    }
-
-    this.lineNumberElem.innerHTML = html.trim();
-  }
+  // --- Private ---
 
   /**
-   * Converts HTML entities within a string to their corresponding characters.
-   * @param {string} html - The HTML string to convert.
+   * Decodes HTML entities by creating a temporary textarea.
+   *
+   * @private
+   * @param {string} html - The HTML string to decode.
    * @returns {string} The decoded string.
    */
   #convertHTML(html) {
@@ -266,9 +293,10 @@ export class ACode extends HTMLElement {
   }
 
   /**
-    * Destroys all current highlights.
-    * @returns {string} The suffix used to identify the highlights used by this instance in the CSS HighlightRegistry
-    */
+   * Destroys the current highlighter instance and cleans up artifacts.
+   *
+   * @private
+   */
   #destroyHighlights() {
     if (!this.highlighter) return;
     try {
@@ -279,155 +307,161 @@ export class ACode extends HTMLElement {
   }
 
   /**
-   * Debounces the update function to prevent rapid, successive calls.
-   * @param {number} [delay=10] - The debounce delay in milliseconds.
-   */
-  #debouncedUpdate(delay = 250) {
-    clearTimeout(this.#updateTimeout);
-    this.#updateTimeout = setTimeout(() => this.#update(), delay);
-  }
-
-  /**
-   * Gets the raw content from the component's slot or textarea child.
-   * @returns {string} The raw content.
+   * Retrieves the raw content from the element.
+   * Prioritizes a child `<textarea>` if present, otherwise uses innerHTML.
+   *
+   * @private
+   * @returns {string} The raw content string.
    */
   #getContent() {
-    if (this.children[0] && this.children[0].localName === 'textarea') {
-      return this.textContent.replace("\\/", "/");
-    } else {
-      return this.#convertHTML(this.innerHTML);
+    // Check if the first child is a Textarea
+    const child = this.firstElementChild;
+    if (child && child.localName === 'textarea') {
+      const val = child.value;
+      return val.replace(/\\\//g, "/");
     }
+
+    // Default fallback: get innerHTML and decode entities
+    return this.#convertHTML(this.innerHTML);
   }
 
   /**
-   * Initiates syntax highlighting.
-   * @param {string | boolean} [syntax=this.highlight] - The language syntax to use.
-   * @returns {Promise<boolean | undefined>} A promise that resolves to true on success.
+   * Initializes the syntax highlighter.
+   *
+   * @private
+   * @param {string|boolean} [syntax=this.#highlight] - The syntax language to highlight.
+   * @param {Object|null} [palette=this.palette] - The color palette to use.
    */
-  #highlightCode(syntax = this.highlight, palette = this.palette) {
-    if (syntax === false) return;
+  #highlightCode(syntax = this.#highlight, palette = this.palette) {
+    if (!this.#contentNode) return;
+    if (this.highlighter) this.highlighter.destroy();
+    if (syntax === 'false' || syntax === false) return;
+
     this.highlighter = new Highlighter(this, syntax, palette);
+
     try {
-      this.highlighter.highlight(this.childNodes[0]);
+      const textNode = Array
+        .from(this.#contentNode.childNodes)
+        .find(n => n.nodeType === Node.TEXT_NODE);
+
+      if (textNode) this.highlighter.highlight(textNode);
+      this.#notify('highlight', this.#highlight);
+
     } catch (error) {
-      throw error;
+      console.error("Highlighting failed", error);
     }
   }
 
   /**
-   * Remove line numbers from the output
+   * Notifies an external binder (e.g., `a-bind`) of property changes.
+   *
+   * @private
+   * @param {string} property - The property name.
+   * @param {*} value - The new value.
    */
-  #removeLineNumbers() {
-    if (!this.lineNumberElem) return;
-    this.lineNumberElem.innerHTML = "";
+  #notify(property, value) {
+    const binder = customElements.get('a-bind');
+    if (binder) binder.update(this, property, value);
   }
 
   /**
-   * Reset all observed attributes to the default values
-   */
-  reset() {
-    for (const attr of ABind.observedAttributes) {
-      this[attr] = this.defaults[attr];
-    }
-  }
-
-  /**
-   * Normalizes indentation and trims whitespace from a string.
-   * @param {string} string - The string to process.
-   * @returns {string} The formatted string.
+   * Normalizes indentation by removing common leading whitespace.
+   *
+   * @private
+   * @param {string} string - The code snippet to normalize.
+   * @returns {string} The normalized code snippet.
    */
   #resetSpaces(string) {
-    this.needsUpdate = false;
-    string = string
-      .replace(/^ +/gm, (spaces) => "\t".repeat(spaces.length))
-      .trim();
+    if (!string) return "";
+
+    // Standardize line breaks
+    string = string.replace(/\r\n/g, '\n');
+    string = string.replace(/^\n+/, '').trimEnd();
+    if (!string) return "";
+
+    // Normalize source tabs to spaces first so we have a consistent baseline
+    string = string.replace(/\t/g, ' ');
 
     const lines = string.split("\n");
-    const spaces = lines.at(-1).match(/^\s*/)[0].length;
-    const regex = new RegExp(`^\\s{${spaces}}`, "g");
-    return lines.map((line) => line.replace(regex, "")).join("\n");
+
+    // Calculate the base HTML indentation from the first line
+    const firstLineMatch = lines[0].match(/^[ ]*/);
+    const baseIndent = firstLineMatch ? firstLineMatch[0].length : 0;
+
+    return lines.map(line => {
+      // Remove the base HTML indentation
+      const cleanLine = line.replace(new RegExp(`^[ ]{0,${baseIndent}}`), '');
+
+      // Replace each remaining leading space with a tab (1 space -> 1 tab)
+      return cleanLine.replace(/^[ ]+/g, (match) => '\t'.repeat(match.length));
+    }).join("\n");
   }
 
   /**
-   * Stores the initial values of observed attributes as defaults.
+   * Toggles inline display mode.
+   *
+   * @private
+   * @param {boolean} value - Whether the element should be inline.
    */
-  #setDefaults() {
-    if (Object.keys(this.defaults).length > 0) return;
-    for (const attr of ACode.observedAttributes) {
-      this.defaults[attr] = this[attr];
-    }
-  }
-
-  #setHighlight(value) {
-    switch (value) {
-      case "false":
-      case false:
-        this.#highlight = false;
-        if (this.highlighter) this.highlighter.deleteCssHighlights();
-        break;
-      case "":
-      case null:
-        this.#highlight = 'html';
-        break;
-      default:
-        this.#highlight = value;
-    }
-
-    if (this.#highlight !== false) {
-      if (this.highlighter) this.highlighter.setHighlights(value);
-    }
-
-    if (window.abind) abind.update(this, 'highlight', value);
-  }
-
   #setInline(value) {
+    this.#inline = value;
+
     if (value === true) {
-      this.style.setProperty('--wrap', 'nowrap')
+      this.style.setProperty('--wrap', 'nowrap');
       this.lineNumbers = false;
     } else {
-      this.style.removeProperty('--wrap');
-      if (this.hasAttribute("line-numbers")) {
-        this.lineNumbers = this.getAttribute("line-numbers");
-      }
-    }
-    this.#inline = value;
-    if (window.abind) abind.update(this, 'inline', value);
-  }
-
-  #setLineNumbers(value) {
-    value = value !== null && value !== 'false' && value !== false;
-    this.#lineNumbers = value;
-    if (value === true) {
-      this.#addLineNumbers();
-    } else {
-      this.#removeLineNumbers();
+      this.style.setProperty('--wrap', this.#wrap);
     }
 
-    if (window.abind) abind.update(this, 'lineNumbers', value);
+    this.#notify('inline', this.#inline);
   }
 
   /**
-   * Updates the component's content and re-applies highlighting and line numbers.
+   * Toggles line numbers.
+   *
+   * @private
+   * @param {boolean} value - Whether to show line numbers.
    */
-  #update() {
-    const newContent = this.#resetSpaces(this.#getContent());
+  #setLineNumbers(value) {
+    if (!this.#lineNumberElem) return;
 
-    // Check against cached content to prevent infinite loops
-    if (newContent === this.#lastContent) return;
-
-    this.#lastContent = newContent;
-    this.textContent = newContent;
-
-    if (this.highlighter) this.#destroyHighlights();
-    if (this.lineNumbers) this.#addLineNumbers();
-
-    if (this.highlight) {
-      requestAnimationFrame(() => this.#highlightCode());
+    if (value === true) {
+      const lines = this.#contentNode.textContent.split(/\n/).length;
+      const nums = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+      this.#lineNumberElem.textContent = nums;
+      this.inline = false;
+    } else {
+      this.#lineNumberElem.innerHTML = "";
     }
+
+    this.#notify('lineNumbers', value);
   }
 
-  get abortController() { return this.#abortController }
-  get observer() { return this.#observer }
+  /**
+   * Debounced update method that refreshes content and highlighting.
+   *
+   * @private
+   * @param {number} [delay=10] - Debounce delay in milliseconds.
+   */
+  #update(delay = 10) {
+    clearTimeout(this.#updateTimeout);
+    this.#updateTimeout = setTimeout(() => {
+      const rawContent = this.#getContent();
+      const newContent = this.#resetSpaces(rawContent);
+      if (newContent === this.#lastContent) return;
+      this.#lastContent = newContent;
+      this.#contentNode.textContent = newContent;
+
+      if (this.highlighter) this.#destroyHighlights();
+      if (this.lineNumbers) this.#setLineNumbers(this.#lineNumbers);
+
+      if (this.#highlight) {
+        requestAnimationFrame(() => this.#highlightCode());
+      }
+    }, delay);
+  }
+
+  // Getters & Setters
 
   /**
    * Gets the inline state.
@@ -437,126 +471,156 @@ export class ACode extends HTMLElement {
 
   /**
    * Sets the inline state.
-   * @param {boolean | string} value
+   * @param {boolean|string} value
    */
   set inline(value) {
-    value = value !== "" && value !== 'false' && value !== false;
-    this.toggleAttribute('inline', value);
+    this.toggleAttribute('inline', value !== 'false' && value !== false);
   }
 
   /**
-   * Gets the indent size.
+   * Gets the indentation level (tab size).
    * @returns {number}
    */
-  get indent() { return this.#indent }
+  get indent() { return this.#indent; }
 
   /**
-   * Sets the indent size.
-   * @param {number | string} value
+   * Sets the indentation level.
+   * @param {number} value
    */
   set indent(value) {
-    if (!value) value = this.defaults.indent;
     this.setAttribute('indent', value);
   }
 
   /**
-   * Gets the highlight language.
-   * @returns {boolean | string}
+   * Gets the current syntax highlighting language.
+   * @returns {string|boolean}
    */
   get highlight() { return this.#highlight; }
 
   /**
-   * Sets the highlight language.
-   * @param {boolean | string | null} value
+   * Sets the syntax highlighting language.
+   * @param {string|boolean} value
    */
   set highlight(value) {
-    if (!value) value = this.defaults.highlight;
     this.setAttribute('highlight', value);
   }
 
   /**
-   * Gets the lineNumbers state.
+   * Gets the line number visibility state.
    * @returns {boolean}
    */
   get lineNumbers() { return this.#lineNumbers; }
 
   /**
-   * Sets the lineNumbers state.
-   * @param {boolean | string} value
+   * Sets the line number visibility state.
+   * @param {boolean|string} value
    */
   set lineNumbers(value) {
-    value = value !== null && value !== 'false' && value !== false;
-    this.toggleAttribute('line-numbers', value);
+    this.toggleAttribute('line-numbers', value !== 'false' && value !== false);
   }
 
   /**
    * Gets the current color palette.
-   * @returns {string}
+   * @returns {Object|null}
    */
-  get palette() { return this.#palette }
+  get palette() { return this.#palette; }
 
   /**
-   * Sets the color palette for the highlighter.
-   * This is not an observed attribute.
-   * @param {string} value
+   * Sets the color palette.
+   * @param {Object|string} value
    */
   set palette(value) {
-    console.log('value', value)
-    /*if (value instanceof Map) {
-    } else if(value === undefined || value === 'default' || value === null || value === 'null') {
-      value = null;
-    } else {
-      try {
-        value = new Map( JSON.parse(value) );
-      } catch (error) {
-        return console.error( `Error setting palette: ${error} | ${value}`);
-      }
-    }*/
-
-    this.setAttribute('palette', JSON.stringify(value));
-    // if (this.highlighter) this.highlighter.setPalette(value);
+    if (typeof value === 'object') {
+        value = JSON.stringify(value);
+    }
+    this.setAttribute('palette', value);
   }
 
   /**
-   * Gets the wrap state.
+   * Gets the code content.
+   */
+  get value() { return this.#getContent() }
+
+  /**
+   * Sets the code content programmatically.
+   * @param {string} val
+   */
+  set value(val) {
+    const newValue = val == null ? '' : String(val);
+    if (this.#getContent() === newValue) return;
+
+    // Update the Source of Truth (Light DOM)
+    // check if a textarea exists
+    const child = this.firstElementChild;
+    if (child && child.localName === 'textarea') {
+      child.value = newValue;
+    } else {
+      this.textContent = newValue;
+    }
+
+    // Trigger the internal render/highlight loop
+    // Pass 0 to skip the debounce delay for immediate UI feedback
+    this.#update(0);
+
+    this.#notify('value', newValue);
+  }
+
+  /**
+   * Gets the whitespace wrapping mode.
    * @returns {string}
    */
-  get wrap() { return this.#wrap }
-  set wrap(value) { this.setAttribute('wrap', value) }
+  get wrap() { return this.#wrap; }
+
+  /**
+   * Sets the whitespace wrapping mode.
+   * @param {string} value
+   */
+  set wrap(value) { this.setAttribute('wrap', value); }
 }
 
 /**
-  * Manages syntax highlighting using the CSS Custom Highlight API.
-  * Caches syntax definitions for efficiency.
-  */
+ * Manages syntax highlighting using the CSS Custom Highlight API.
+ * Caches syntax definitions.
+ * @type {Map<string, Object>}
+ */
 const syntaxCache = new Map();
 
 /**
-  * A class to handle the logic of syntax highlighting.
-  * @class Highlighter
-  */
+ * Handles the logic of syntax highlighting.
+ *
+ * @class Highlighter
+ */
 export class Highlighter {
-  #syntax = null;
+  /** @private */ #syntax = null;
+  /** @private */ #defs = {};
+  /** @private */ #id;
+  /** @private */ #palette;
+  /** @private */ #style;
+  /** @private */ #element;
+  /** @private */ #textNode;
+  /** @private */ #latestRequestId = 0;
 
-  #defs;
-
+  /**
+   * Default regular expressions for syntax tokens.
+   * @private
+   */
   #defaultSyntaxDefs = {
-    argument: /(?<=\()[^)]+/g,
-    function: /[\w-]+\s*\(|\)/g,
-    operator: /[>+~*\/=]|(?<!\w[-])/g, // Fixed: removed extra comma
-    property: /(?<!}[\r\n\s]+)\b([\w\d-]+:(?!:))/g,
-    number: /(?<!\w)[#+-.]?\d+[%.A-Za-z]*/g, // Fixed: replaced \b with a more specific character set
-    tag: /<\/?[\w-]+|(?<=[\w"'])>/g,
-    string: /["'`][^"'`]*["'`]/g,
-    variable: /--[\w\d]+-?[\w\d]*/g,
+    argument: /(?<=\()[^)]+(?=\))/g,
+    operator: /[>~+*|=^$]/g,
+    property: /(?<!@)\b[\w-]+(?=:)/g,
+    number: /[+-]?\b\d*\.?\d+(?:e[+-]?\d+)?(?:%|[a-z]{1,4})?\b/ig,
+    tag: /<\/?[\w-]+|\/>|(?<=[\w"'])>/g,
     comment: /(<!--|\/\*)([\s\S]*?)(-->|\*\/)/g,
-    keyword: /@[\w]+\b/g
+    keyword: /@[\w]+\b/g,
+    variable: /--[\w\d]+-?[\w\d]*/g,
+    function: /[\w-]+\s*(?=\()/g,
+    string: /(["'])(?:\\.|[^\\])*?\1/g,
   };
 
-  #id;
-
-  #palette;
-
+  /**
+   * Default color palette mapping token types to colors.
+   * @private
+   */
   #defaultPalette = new Map([
     ["argument", "hsl(32, 93%, 66%)"],
     ["comment", "hsl(221, 12%, 69%)"],
@@ -570,198 +634,244 @@ export class Highlighter {
     ["tag", "indianred"],
   ]);
 
-  #style;
-
-  #textNode;
-
+  /**
+   * Creates an instance of Highlighter.
+   *
+   * @param {HTMLElement} element - The host element containing the code.
+   * @param {string} syntax - The syntax language identifier.
+   * @param {Object|string} palette - The color palette definition.
+   * @param {string} [id] - A unique identifier for the highlighter instance.
+   * @throws {Error} If the passed element is not an HTMLElement.
+   */
   constructor(element, syntax, palette, id) {
-    if (! (element instanceof HTMLElement)) {
-      throw new Error("element passed to Highlighter must be an HTML element");
+    if (!(element instanceof HTMLElement)) {
+      throw new Error("Element passed to Highlighter must be an HTML element");
     }
-    this.#syntax = syntax || this.#syntax;
-    this.#palette = (palette !== null && palette !== 'default') ? palette : this.#defaultPalette;
+    this.#element = element;
+    this.#syntax = syntax;
+    this.setPalette(palette);
     this.#id = id || Math.random().toString(36).substring(2, 9);
 
     this.#style = this.#createStyles();
-    const shadow = (element.shadowRoot && element.shadowRoot.mode === 'open') ?
-        element.shadowRoot :
-        element.attachShadow({ mode: 'open' });
 
-    shadow.adoptedStyleSheets = [this.#style];
-    document.adoptedStyleSheets = [...document.adoptedStyleSheets, this.#style];
+    // Attach styles to the component's shadow root to avoid global pollution
+    const shadow = element.shadowRoot || element.attachShadow({ mode: 'open' });
+    shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, this.#style];
   }
 
+  // --- Public Methods ---
+
+  /**
+   * Cleans up the highlighter, removing styles and references.
+   */
+  destroy() {
+    this.#deleteCssHighlights();
+
+    if (this.#element && this.#element.shadowRoot) {
+      this.#element.shadowRoot.adoptedStyleSheets =
+        this.#element.shadowRoot.adoptedStyleSheets.filter(s => s !== this.#style);
+    }
+
+    this.#element = null;
+    this.#textNode = null;
+  }
+
+  /**
+   * Performs the syntax highlighting on the specified text node.
+   *
+   * @async
+   * @param {Node} textNode - The text node containing the code.
+   */
+  async highlight(textNode) {
+    if (textNode && textNode.nodeType !== Node.TEXT_NODE) {
+      if(textNode.childNodes.length > 0) {
+         textNode = Array.from(textNode.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+      }
+      if (!textNode) textNode = document.createTextNode("");
+    }
+
+    if (!(this.#textNode = textNode || this.#textNode)) return;
+    const currentRequestId = ++this.#latestRequestId;
+    const defs = await this.#getSyntaxDefs(this.#syntax);
+
+    if (currentRequestId !== this.#latestRequestId) return;
+    this.#defs = defs;
+
+    try {
+      this.#doHighlights(this.#defs, this.#textNode);
+    } catch (error) {
+      console.error("Error highlighting code:", error);
+    }
+  }
+
+  /**
+   * Updates the color palette and regenerates styles.
+   *
+   * @param {Map|string} palette - The new palette configuration.
+   */
+  setPalette(palette) {
+    let map;
+    if (palette instanceof Map) {
+      map = palette;
+    } else if (typeof palette === 'string') {
+        if (palette === 'default') {
+            map = this.#defaultPalette;
+        } else {
+            try {
+                map = new Map(JSON.parse(palette));
+            } catch (e) {
+                console.warn("Invalid palette JSON string, using default.", this.#element);
+                map = this.#defaultPalette;
+            }
+        }
+    } else {
+        map = this.#defaultPalette;
+    }
+
+    this.#palette = map;
+
+    if (this.#style) {
+        const newSheet = this.#createStyles();
+        this.#style.replaceSync(newSheet.cssRules[0]?.cssText ? Array.from(newSheet.cssRules).map(r=>r.cssText).join(' ') : '');
+    }
+  }
+
+  // --- Private Methods
+
+  /**
+   * Creates a CSS Highlight for a specific token type and set of ranges.
+   *
+   * @private
+   * @param {Set<Range>} ranges - The ranges to highlight.
+   * @param {string} key - The token type key (e.g., 'keyword').
+   */
+  #applyHighlight(ranges, key) {
+    if (!ranges || ranges.size === 0) return;
+    const highlightName = `${key}-${this.#id}`;
+    const highlight = new Highlight(...ranges);
+    CSS.highlights.set(highlightName, highlight);
+  }
+
+  /**
+   * Generates the CSSStyleSheet for the current palette.
+   *
+   * @private
+   * @returns {CSSStyleSheet}
+   */
   #createStyles() {
-    const sheet = this.#style ? this.#style : new CSSStyleSheet();
+    const sheet = new CSSStyleSheet();
     let rules = "";
     this.#palette.forEach((color, key) => {
       const highlightName = `${key}-${this.#id}`;
-      rules += `::highlight(${highlightName}) { color: ${color}}`;
+      rules += `::highlight(${highlightName}) { color: ${color}; } `;
     });
-
     sheet.replaceSync(rules);
     return sheet;
   }
 
-  deleteCssHighlights() {
+  /**
+   * Removes all CSS Custom Highlights associated with this instance.
+   */
+  #deleteCssHighlights() {
+    if (!this.#defs) return;
     for (const key of Object.keys(this.#defs)) {
       const highlightName = `${key}-${this.#id}`;
       CSS.highlights.delete(highlightName);
     }
   }
 
-  destroy() {
-    this.deleteCssHighlights();
-    document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
-      (s) => s !== this.#style
-    );
-  }
-
+  /**
+   * Applies highlights to the text node based on the syntax object.
+   *
+   * @private
+   * @param {Object} syntaxObj - The syntax definitions.
+   * @param {Node} textNode - The text node to highlight.
+   * @returns {number} The size of the CSS highlights set.
+   */
   #doHighlights(syntaxObj, textNode) {
-    if (textNode.nodeType !== Node.TEXT_NODE) {
-      throw new Error(
-        `Second argument must be a TEXT_NODE (3). Given nodeType is (${textNode.nodeType})`
-      );
-    }
+    if (textNode.nodeType !== Node.TEXT_NODE) return 0;
 
-    let ranges;
     const string = textNode.textContent;
 
-    for (const prop of Object.keys(syntaxObj)) {
-      const value = syntaxObj[prop];
+    for (const [prop, value] of Object.entries(syntaxObj)) {
+      let ranges;
 
       if (!value) {
         continue;
       } else if (Array.isArray(value)) {
-        // Array of key words
-        // Set() removes duplicate words
-        const words = [...new Set(value)].join("|");
+        const words = [...new Set(value)].map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|");
         const regex = new RegExp(`\\b(${words})\\b`, "g");
         ranges = this.#setRanges(regex, string, textNode);
-      } else if (value instanceof Function) {
-        // function returning flat array of range objects
+      } else if (typeof value === 'function') {
         ranges = new Set(value(string, textNode));
       } else if (value instanceof RegExp) {
-        // regular expression
         ranges = this.#setRanges(value, string, textNode);
       } else {
-        console.error(`Invalid syntaxObj definition for ${prop}: `, `"${value}"`);
+        console.warn(`Invalid syntax definition for ${prop}`);
         continue;
       }
 
-      this.#setHighlight(ranges, prop);
+      this.#applyHighlight(ranges, prop);
     }
 
-    // the size should be the number of properties in the
     return CSS.highlights.size;
   }
 
   /**
-   * Retrieves a syntax definition, from cache if available.
-   * @param {string | object} syntax - The name of the syntax or a syntax object.
-   * @returns {Promise<object>} A promise that resolves to the syntax definition object.
+   * Retrieves syntax definitions, loading them dynamically if necessary.
+   *
+   * @private
+   * @param {string|Object} syntax - The syntax identifier or definition object.
+   * @returns {Promise<Object>} The syntax definition object.
    */
   async #getSyntaxDefs(syntax) {
-    let syntaxObj;
+    if (!syntax || syntax === 'html') return this.#defaultSyntaxDefs;
 
-    if (typeof syntax === "string") {
-      // syntaxCache is not a property, it is a top level variable.
-      if (syntaxCache.has(syntax)) {
-        syntaxObj = syntaxCache.get(syntax);
-      } else {
-        let url = syntax;
-        // if syntax is not a url, look for the syntax file at './syntax.${syntax}.js'
-        if (!/^(http|\.|\/)/.test(syntax)) url = `./syntax.${syntax}.js`;
-        try {
-          const module = await import(url);
-          syntaxCache.set(syntax, module.default);
-          syntaxObj = module.default;
-        } catch (error) {
-          console.error("Error loading Highlight Syntax");
-          throw error;
-        }
-      }
-    } else {
-      // hopefully `syntax` is a pojo
-      try {
-        syntaxObj = syntax;
-        syntaxCache.set(syntax, syntax)
-      } catch (e) {
-        syntaxObj = this.defaultSyntaxDefs;
-        syntaxCache.set(syntax, syntaxObj)
-        console.error("Error loading syntax definition. Using defaults: ", e);
-      }
+    if (typeof syntax === "object") {
+        syntaxCache.set("custom", syntax);
+        return syntax;
     }
 
-    return syntaxObj;
-  }
-
-  async highlight(textNode) {
-    if (textNode && textNode.nodeType !== Node.TEXT_NODE) {
-      textNode = document.createTextNode(textNode.textContent);
+    if (syntaxCache.has(syntax)) {
+      return syntaxCache.get(syntax);
     }
 
-    textNode = textNode || this.#textNode;
-    if (!this.#textNode) this.#textNode = textNode;
-
-    if (!this.#syntax || this.#syntax === 'html') {
-      this.#defs = this.#defaultSyntaxDefs;
-    } else {
-      this.#defs = await this.#getSyntaxDefs(this.#syntax);
-    }
+    let url = syntax;
+    if (!/^(http|\.|\/)/.test(syntax)) url = `./syntax.${syntax}.js`;
 
     try {
-      this.#doHighlights(this.#defs, textNode);
+      const module = await import(url);
+      const defs = module.default;
+      syntaxCache.set(syntax, defs);
+      return defs;
     } catch (error) {
-      console.error("Error highlighting code: ");
-      throw error; // Re-throw original error to preserve stack trace
+      console.warn(`Could not load syntax file: ${url}. Reverting to default.`, error);
+      return this.#defaultSyntaxDefs;
     }
   }
 
-  #setHighlight(ranges, key) {
-    const highlightName = `${key}-${this.#id}`;
-    const highlight = new Highlight(...ranges);
-    CSS.highlights.set(highlightName, highlight);
-  }
-
-  setHighlights(syntax) {
-    this.deleteCssHighlights();
-    this.#syntax = syntax;
-    this.highlight();
-  }
-
-  setPalette(map) {
-    if (map instanceof Map && map.size === 0) {
-      map = this.#defaultPalette;
-    } else if (! (map instanceof Map)) {
-      try {
-        const parsed = JSON.parse(map);
-        map = new Map(parsed);
-      } catch (error) {
-        return console.error( `Error setting palette: ${error}`, map);
-      }
-    }
-
-    this.#palette = map;
-    this.#createStyles();
-  }
-
+  /**
+   * Finds all matches for a regex in a string and creates Ranges.
+   *
+   * @private
+   * @param {RegExp} regex - The regular expression to match.
+   * @param {string} string - The text content.
+   * @param {Node} node - The text node.
+   * @returns {Set<Range>} A set of Range objects.
+   */
   #setRanges(regex, string, node) {
     const ranges = new Set();
     const matches = string.matchAll(regex);
 
     for (const match of matches) {
-      // Avoid creating empty ranges
       if (match[0].length === 0) continue;
-
-      const start = match.index;
-      const end = start + match[0].length;
-      const range = new Range();
-      range.setStart(node, start);
-      range.setEnd(node, end);
-      ranges.add(range);
+      try {
+        const range = new Range();
+        range.setStart(node, match.index);
+        range.setEnd(node, match.index + match[0].length);
+        ranges.add(range);
+      } catch (e) { /* ignore range errors */ }
     }
-
     return ranges;
   }
 }
