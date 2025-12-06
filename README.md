@@ -374,6 +374,8 @@ The Highlight instance is then passed to the global [CSS:highlights static prope
 
 ## Changelog
 
+- v2.0.2 : Repositioned default def for "strings" so quoted text in comments wouldn't get highlighted as a string.
+
 - v2.0.1
 
 	- Added wrap attribute to control CSS white-space (e.g., pre-wrap).

@@ -7,8 +7,8 @@
 
 	<script type="module" src="extra/a-bind.min.js"></script>
 
-	<script type="module" src="dist/a-code.min.js"></script>
-	<!-- <script type="module" src="src/a-code.js"></script> -->
+	<!-- <script type="module" src="dist/a-code.min.js"></script> -->
+	<script type="module" src="src/a-code.js"></script>
 
 	<script type="module" src="extra/a-markdown.min.js"></script>
 
@@ -39,7 +39,7 @@
 
 	<h2>Demo</h2>
 
-	<a-tabset active="1">
+	<a-tabset>
 		<!-- HTML -->
 		<strong slot="title">HTML</strong>
 		<section slot="content">
@@ -195,7 +195,7 @@
 								}
 
 								h1 + p
-								{ margin-top: 0.5em; } /* Float without leading digit check */
+								{ margin-top: .5em; } /* Float without leading digit */
 
 								/* Attribute selectors (Testing =, ^=, *=) */
 								a[href^="https"],
@@ -220,23 +220,22 @@
 								}
 
 								.card::after {
-									/* Tests escaped quotes inside string */
+									/* Escaped quotes inside string */
 									content: 'It\'s a "mixed" quote test';
 									font-family: "Helvetica Neue", sans-serif;
 								}
 
 								/* --- FUNCTIONS & ARGUMENTS --- */
 								.dynamic-box {
-									/* Tests function regex and argument grouping */
+									/* Function regex and argument grouping */
 									color: rgba(255, 99, 71, 0.8);
 									background-image: url('background.jpg');
 
-									/* Nesting stress test (Regex often struggles here) */
 									width: calc(100% - 20px);
 									padding: var(--gap-size);
 								}
 
-								/* --- ANIMATIONS (At-Rules) --- */
+								/* --- ANIMATIONS (at rules) --- */
 								@keyframes slideIn {
 									0% {
 										transform: translateY(-100px);
@@ -895,5 +894,133 @@
 			</a-code>
 		</section>
 	</a-tabset>
+
+	<h2>Examples</h2>
+
+	<section class="flex stretch center">
+		<div class="card">
+			<h3>Inline Code</h3>
+			<a-code inline highlight>
+				<textarea>
+					<a-code inline>...</a-code >
+				</textarea>
+			</a-code>
+
+			<p>Some text <a-code inline> function foo() {}</a-code> some more text.</p>
+		</div>
+
+		<div class="card">
+			<h3>Indent</h3>
+			<a-code indent="1" highlight>
+				<textarea>
+					<a-code indent="1">
+						<article>
+							<h1>A Title</h1>
+							<p>Some text</p>
+						</article>
+					</a-code >
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+			<h3>line numbers</h3>
+			<a-code line-numbers highlight>
+				<textarea>
+					<a-code line-numbers>
+						<article>
+							<h1>A Title</h1>
+							<p>Some text</p>
+						</article>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+			<h3>Highlight using Default Defs</h3>
+			<a-code highlight>
+				<textarea>
+					<a-code highlight>
+						<article class="foo">
+							<h1>A Title</h1>
+							<p>Some text</p>
+						</article>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+			<h3>Highlight using Keyword</h3>
+			<a-code highlight="javascript">
+				<textarea>
+					// syntax.javascript.js must
+					// be in same dir as a-code.js
+					<a-code highlight="javascript">
+						function foo(arg) { return arg }
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+			<h3>Highlight using Url</h3>
+			<a-code highlight="../src/syntax.javascript.js">
+				<textarea>
+					<a-code highlight="../src/syntax.javascript.js">
+						function foo(arg) { return arg }
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card" style="width:350px">
+			<h3>Wrap</h3>
+			<a-code highlight wrap="normal">
+				<textarea>
+					<a-code wrap="normal">
+						<!-- The "wrap" attribute takes any valid css value for "white-space" -->
+						<article class="foo">
+							<h1>A Title</h1>
+							<p>Id do adipisicing mollit in ut aliqua dolor sit in reprehenderit.</p>
+						</article>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+			<h3>Prevent Code Execution</h3>
+			<a-code highlight>
+				<textarea>
+					<a-code>
+						<textarea>
+							<!-- Wrap code in textarea -->
+							<img src="false" onerror="alert('fubar!')">
+						<\/textarea>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+			<h3> Nested Textareas </h3>
+			<a-code highlight wrap="pre-wrap">
+				<textarea>
+					<a-code>
+						&lt;textarea>
+							<img src="false" onerror="alert('fubar!')">
+							<textarea>
+								This is a nested textarea
+								<!-- Escape slash in nested
+								closing tag with a backslash -->
+							<\\/textarea>
+						&lt;/textarea>
+					</a-code>
+				</textarea>
+			</a-code>
+		</div>
+	</section>
 </body>
 </html>
