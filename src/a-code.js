@@ -2,7 +2,7 @@
  * @file a-code.js
  * @author Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
- * @version 2.0.2
+ * @version 2.0.3
  */
 
 /**
@@ -36,7 +36,7 @@ export default class ACode extends HTMLElement {
    * @private
    * @type {number}
    */
-  #indent = 2;
+  #indent = 1;
 
   /**
    * @private
@@ -374,25 +374,30 @@ export default class ACode extends HTMLElement {
   #resetSpaces(string) {
     if (!string) return "";
 
-    // Standardize line breaks
-    string = string.replace(/\r\n/g, '\n');
-    string = string.replace(/^\n+/, '').trimEnd();
-    if (!string) return "";
+    // Standardize line breaks and trim empty start/end
+    string = string.replace(/\r\n/g, '\n')
+                   .replace(/^\n+/, '')
+                   .trimEnd();
 
-    // Normalize source tabs to spaces first so we have a consistent baseline
-    string = string.replace(/\t/g, ' ');
+    // Temporarily expand tabs to spaces to ensure accurate math
+    // Assuming 2 spaces per tab
+    string = string.replace(/\t/g, '  ');
 
     const lines = string.split("\n");
 
-    // Calculate the base HTML indentation from the first line
+    // 3. Calculate the base indentation (from the first line)
+    // We count spaces to know exactly how much to strip from every line.
     const firstLineMatch = lines[0].match(/^[ ]*/);
     const baseIndent = firstLineMatch ? firstLineMatch[0].length : 0;
 
     return lines.map(line => {
-      // Remove the base HTML indentation
-      const cleanLine = line.replace(new RegExp(`^[ ]{0,${baseIndent}}`), '');
+      // 4. Strip the base indentation
+      let cleanLine = line.replace(new RegExp(`^[ ]{0,${baseIndent}}`), '');
 
-      // Replace each remaining leading space with a tab (1 space -> 1 tab)
+      // 5. CRITICAL: Convert remaining leading spaces to tabs.
+      // This ensures the CSS `tab-size` (driven by your indent attribute)
+      // can actually resize the indentation dynamically.
+      // We use 1 space = 1 tab here to preserve the original component's behavior.
       return cleanLine.replace(/^[ ]+/g, (match) => '\t'.repeat(match.length));
     }).join("\n");
   }
