@@ -104,7 +104,7 @@ export default {
     'Plugin', 'PluginArray', 'PopStateEvent', 'PromiseRejectionEvent', 'RadioNodeList',
     'Range', 'ReadableStream', 'Request', 'ResizeObserver', 'ResizeObserverEntry',
     'Response', 'Screen', 'ShadowRoot', 'SharedWorker', 'SharedWorkerGlobalScope',
-    'Storage', 'StorageEvent', 'SubmitEvent', 'SVGImageElement', 'Text',
+    'Storage', 'StorageEvent', 'SubmitEvent', 'SVGImageElement',
     'TextDecoder', 'TextEncoder', 'TextMetrics', 'TextTrack', 'TextTrackCue',
     'TextTrackCueList', 'TextTrackList', 'TimeRanges', 'ToggleEvent', 'Touch',
     'TouchEvent', 'TouchList', 'TrackEvent', 'TreeWalker', 'UIEvent', 'URL',

@@ -96,12 +96,16 @@ export default {
   },
   // Matches standard operators, bitwise, comparison, assignment, and delimiter colons/dots
   operator: /\+|-|\*|\/|%|\*\*|\/\/|=|==|!=|<=|>=|<|>|&|\||\^|~|!|:|(?<![a-zA-Z0-9_])\.(?![a-zA-Z0-9_])/g,
+
   // Matches Hex, Binary, Octal, Floats, Integers, and Complex numbers
   number: /\b0x[\da-f]+\b|\b0b[01]+\b|\b0o[0-7]+\b|\b\d+\.?\d*(?:e[+-]?\d+)?j?\b/ig,
+
   // Matches function definitions (after 'def') AND function calls (before '(')
   function: /(?<=def\s+)\w+|(?<=\b)\w+(?=\s*\()/g,
+
   // Repurposed to match Decorators (e.g. @classmethod, @app.route)
   tag: /@\s*[\w.]+/g,
+
   keyword: [
     // --- Logic & Flow ---
     'and', 'or', 'not', 'is', 'in',
@@ -170,9 +174,12 @@ export default {
     'MappingView', 'ItemsView', 'KeysView', 'ValuesView',
     'Awaitable', 'Coroutine', 'AsyncIterable', 'AsyncIterator', 'AsyncGenerator'
   ],
+
   // Matches Triple quotes (double/single) then Single quotes (double/single), handling prefixes (f, r, b, u)
   string: /(?:r|u|f|b|fr|rf)?(?:"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/gi,
+
   // Repurposed for "Self", "Cls", and Dunder (Magic) methods
   variable: /\bself\b|\bcls\b|\b__[a-z_]+__\b/g,
+
   comment: /#.*/g
 };

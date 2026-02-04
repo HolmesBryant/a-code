@@ -43,15 +43,15 @@ export default {
 	attribute: null,
 	comment: null,
 	function: function(string, node) {
-	    let match, range;
-	    const ranges = [];
+    let match, range;
+    const ranges = [];
 		const regex = /<\/?[^>]+>/g;
-	    while (match = regex.exec(string)) {
+    while (match = regex.exec(string)) {
 			range = new Range();
 			range.setStart(node, match.index);
 			range.setEnd(node, match.index + match[0].length);
 			ranges.push(range);
-	    }
+		}
 
 		return ranges;
 	},

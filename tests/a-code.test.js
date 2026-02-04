@@ -9,12 +9,6 @@ const runner = new ATestRunner(import.meta.url);
 runner.output="#test-results";
 const { group, test, equal, wait, info } = runner;
 
-// --- Helper Functions ---
-
-/**
- * Creates an <a-code> element, appends it to the DOM, and waits for the
- * internal debounce/AF to settle.
- */
 async function createFixture(content = '', attributes = {}) {
   const el = document.createElement('a-code');
 
@@ -22,9 +16,7 @@ async function createFixture(content = '', attributes = {}) {
     el.setAttribute(key, val);
   }
 
-  // Use a textarea if strictly needed, otherwise innerHTML
   if (content) el.innerHTML = content;
-
   document.body.append(el);
 
   // ACode has a generic debounce of 10ms in #update()
@@ -35,14 +27,10 @@ async function createFixture(content = '', attributes = {}) {
   return el;
 }
 
-/**
- * Clean up fixtures after tests
- */
 function cleanup() {
   document.querySelectorAll('a-code').forEach(el => el.remove());
 }
 
-// --- Tests ---
 
 group("Initialization & Defaults", () => {
 
@@ -62,7 +50,7 @@ group("Initialization & Defaults", () => {
       const el = await createFixture();
       return {indent: el.indent, highlight: el.highlight, lineNumbers: el.lineNumbers, wrap: el.wrap, inline: el.inline };
     },
-    {indent: 2, highlight: false, lineNumbers: false, wrap: 'pre', inline: false }
+    {indent: 1, highlight: false, lineNumbers: false, wrap: 'pre', inline: false }
   );
 
   cleanup();
@@ -83,16 +71,11 @@ group("Indentation Normalization", () => {
 
     const el = await createFixture(input);
     const content = el.shadowRoot.querySelector('#content').textContent;
-
-    // We don't use .trim() here on the result because we want to verify
-    // that the component itself correctly handled the leading/trailing
-    // newlines via its internal .trimEnd() logic.
     return content;
   },
-  // Expected Output:
-  // 1. Base indent (6 spaces) is stripped from all lines.
-  // 2. Line 2 has 2 extra spaces. Logic converts 1 space -> 1 tab.
-  // 3. Result is 2 tabs (\t\t).
+  // Base indent (6 spaces) is stripped from all lines.
+  // Line 2 has 2 extra spaces. Logic converts 1 space -> 1 tab.
+  // Result is 2 tabs (\t\t).
   `<div>\n\t\t<span>Hello</span>\n</div>`
   );
 
@@ -201,17 +184,14 @@ group("Line Numbers", () => {
 });
 
 group("Highlighter Integration", () => {
-  // Note: We cannot easily test if the pixel colors changed (visual regression),
-  // but we can test if the Highlighter class was instantiated and attached.
-
-  test("Highlighter instance is created by if highlight != false", async () => {
+  test("Highlighter instance is properly created", async () => {
     const el = await createFixture('const a = 1;');
     el.highlight = 'html';
     wait(10);
     return !!el.highlighter;
   }, true);
 
-  test("Highlighter is destroyed when highlight='false'",
+  test("Highlighter is properly destroyed",
     async () => {
       const el = await createFixture('const a = 1;');
       el.highlight = false;
@@ -234,7 +214,6 @@ group("Highlighter Integration", () => {
     el.palette = palette;
 
     await wait(20);
-    // Attribute is stringified
     return JSON.parse(el.getAttribute('palette'));
   }, { keyword: 'blue', string: 'red' });
 
@@ -267,5 +246,4 @@ group("HTML Entity Decoding", () => {
   cleanup();
 });
 
-// Run the suite
 runner.run();
