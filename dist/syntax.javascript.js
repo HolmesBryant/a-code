@@ -1,5 +1,5 @@
 /**
- * Javascript syntax definition file for wijit-code web component
+ * Javascript syntax definition file for Highlighter module
  *
  *  @author Holmes Bryant <https://github.com/HolmesBryant>
  *  @license GPL-3.0

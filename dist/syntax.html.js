@@ -1,8 +1,6 @@
 /**
- * HTML/CSS syntax definition file for a-code web component.
- * This syntax definition is not necessary because it is included in the component as the default syntax.
- * Simply write your tag like:
- * <a-code highlight>...</a-code>
+ * HTML/CSS syntax definition file for Highlighter module.
+ * This file is not strictly necessary because it is included as the default/fallback syntax.
  *
  *  @author Holmes Bryant <https://github.com/HolmesBryant>
  *  @license GPL-3.0

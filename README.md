@@ -183,14 +183,10 @@ el.palette = myColors;
 
 #### Creating Custom Syntax Files
 
-To support a new language, create a JavaScript module file (e.g., syntax.python.js). It must default export an object where keys are token names and values are RegExp (with global flag), Arrays of keywords, or Functions.
+To support a new language, create a JavaScript module file (e.g., syntax.custom.js). It must default export an object where keys are token names and values are RegExp (with global flag), Arrays of keywords, or Functions.
 
-Example syntax.python.js:
+Refer to the `syntax.example.js` file in the `dist` folder.
 
-
-```JavaScript
-
-```
 ## In-depth Explaination
 
 ### Custom Color Palettes

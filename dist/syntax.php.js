@@ -1,6 +1,6 @@
 /**
  * @file syntax.php.js
- * PHP syntax definition file for a-code web component
+ * PHP syntax definition file for Highlighter module.
  */
 export default {
   argument: function(string, node) {

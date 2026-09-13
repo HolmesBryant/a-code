@@ -1,6 +1,6 @@
 /**
  * @file syntax.python.js
- * Python syntax definition file for a-code web component
+ * Python syntax definition file for Highlighter module.
  */
 export default {
   argument: function(string, node) {
